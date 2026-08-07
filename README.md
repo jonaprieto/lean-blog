@@ -62,3 +62,5 @@ generated CSS.
 ## License
 
 Apache-2.0.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for collaborator setup and CI access.
