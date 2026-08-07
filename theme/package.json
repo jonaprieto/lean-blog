@@ -1,0 +1,14 @@
+{
+  "name": "leanblog-theme",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/app.css -o ./dist/site.css --minify",
+    "watch:css": "tailwindcss -i ./src/app.css -o ./dist/site.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "daisyui": "^5.7.16",
+    "tailwindcss": "^4.3.3"
+  }
+}

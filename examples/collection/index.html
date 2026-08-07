@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A catalogue of LeanBlog modules." />
+    <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml" />
+    <title>Modules · LeanBlog</title>
+    <link rel="stylesheet" href="../../theme/dist/site.css" />
+  </head>
+  <body class="min-h-screen bg-base-200 text-base-content">
+    <header class="border-b border-base-300 bg-base-100/90 backdrop-blur">
+      <nav class="navbar mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+        <a class="btn btn-ghost px-0 text-lg font-bold" href="../">LeanBlog</a>
+        <div class="ml-auto flex items-center gap-2">
+          <a class="btn btn-ghost btn-sm" href="../">Posts</a>
+          <a class="btn btn-primary btn-sm" href="./" aria-current="page">Modules</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+      <section class="max-w-3xl">
+        <div class="badge badge-primary badge-outline mb-4">Collection</div>
+        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">Lean modules</h1>
+        <p class="mt-5 text-lg leading-8 text-base-content/70">
+          Explore the modules that make up the LeanBlog ecosystem, ordered by their latest published
+          documentation.
+        </p>
+      </section>
+
+      <section class="mt-10" aria-labelledby="module-list-title">
+        <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 id="module-list-title" class="text-xl font-semibold">3 modules</h2>
+            <p class="text-sm text-base-content/60">Newest publications first</p>
+          </div>
+          <label class="input input-bordered flex w-full items-center gap-2 sm:max-w-xs">
+            <span class="sr-only">Search modules</span>
+            <svg class="size-4 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke-width="2" />
+              <path d="m20 20-4-4" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <input type="search" placeholder="Search modules" aria-label="Search modules" />
+          </label>
+        </div>
+
+        <div class="hidden overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-sm md:block">
+          <table class="table table-lg">
+            <caption class="sr-only">Lean modules and publication dates</caption>
+            <thead>
+              <tr>
+                <th scope="col">Module</th>
+                <th scope="col">Description</th>
+                <th scope="col">Published</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="hover:bg-base-200/60">
+                <th scope="row"><a class="link link-primary font-semibold" href="../termcolor/">Lean.TermColor</a></th>
+                <td class="text-base-content/70">ANSI text, styles, and terminal-safe rendering.</td>
+                <td><time datetime="2026-08-07">Aug 7, 2026</time></td>
+              </tr>
+              <tr class="hover:bg-base-200/60">
+                <th scope="row"><a class="link link-primary font-semibold" href="../grip/">Lean.Grip</a></th>
+                <td class="text-base-content/70">Total parser combinators over raw bytes.</td>
+                <td><time datetime="2026-07-28">Jul 28, 2026</time></td>
+              </tr>
+              <tr class="hover:bg-base-200/60">
+                <th scope="row"><a class="link link-primary font-semibold" href="../argus/">Lean.Argus</a></th>
+                <td class="text-base-content/70">Typed command-line specifications and completions.</td>
+                <td><time datetime="2026-07-12">Jul 12, 2026</time></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid gap-3 md:hidden">
+          <a class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" href="../termcolor/">
+            <div class="card-body p-5">
+              <div class="flex items-start justify-between gap-4">
+                <h3 class="card-title text-base">Lean.TermColor</h3>
+                <time class="text-sm text-base-content/60" datetime="2026-08-07">Aug 7</time>
+              </div>
+              <p class="text-sm leading-6 text-base-content/70">ANSI text, styles, and terminal-safe rendering.</p>
+            </div>
+          </a>
+          <a class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" href="../grip/">
+            <div class="card-body p-5">
+              <div class="flex items-start justify-between gap-4">
+                <h3 class="card-title text-base">Lean.Grip</h3>
+                <time class="text-sm text-base-content/60" datetime="2026-07-28">Jul 28</time>
+              </div>
+              <p class="text-sm leading-6 text-base-content/70">Total parser combinators over raw bytes.</p>
+            </div>
+          </a>
+          <a class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" href="../argus/">
+            <div class="card-body p-5">
+              <div class="flex items-start justify-between gap-4">
+                <h3 class="card-title text-base">Lean.Argus</h3>
+                <time class="text-sm text-base-content/60" datetime="2026-07-12">Jul 12</time>
+              </div>
+              <p class="text-sm leading-6 text-base-content/70">Typed command-line specifications and completions.</p>
+            </div>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-base-300 bg-base-100">
+      <div class="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-base-content/60 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <span>LeanBlog visual prototype</span>
+        <span>Static HTML · no runtime framework</span>
+      </div>
+    </footer>
+  </body>
+</html>

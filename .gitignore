@@ -1,0 +1,11 @@
+.lake/
+_out/
+dist/
+node_modules/
+theme/dist/
+*.olean
+*.ilean
+*.c
+*.so
+*.trace
+.DS_Store

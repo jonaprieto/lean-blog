@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
+
+@source "../../examples";
+@source "../../src";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  :root {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  .leanblog-prose {
+    @apply max-w-3xl text-base leading-8 text-base-content/85;
+  }
+
+  .leanblog-prose h1 {
+    @apply mb-6 text-4xl font-bold tracking-tight text-base-content sm:text-5xl;
+  }
+
+  .leanblog-prose h2 {
+    @apply mt-12 mb-4 text-2xl font-semibold tracking-tight text-base-content;
+  }
+
+  .leanblog-prose a {
+    @apply link link-primary font-medium;
+  }
+
+  .leanblog-prose code {
+    @apply rounded bg-base-200 px-1.5 py-0.5 font-mono text-[0.9em] text-primary;
+  }
+
+  .leanblog-prose pre {
+    @apply my-8 overflow-x-auto rounded-box bg-neutral p-5 text-sm leading-7 text-neutral-content shadow-sm;
+  }
+
+  .leanblog-prose pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+}
