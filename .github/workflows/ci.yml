@@ -75,13 +75,15 @@ jobs:
           ./.lake/build/bin/leanblog check examples/posts
           ./.lake/build/bin/leanblog build examples/posts
           test -s .lake/build/site/index.html
-          test -s .lake/build/site/posts/index.html
+          test -s .lake/build/site/2026-8-5-linking-across-leanblog-modules/index.html
+          test -s .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          test -s .lake/build/site/2026-8-7-a-leanblog-post/index.html
           test -s .lake/build/site/api/LeanBlog/Markdown/index.html
           test -s .lake/build/site/api/LeanBlog/Links/index.html
           test -s .lake/build/site/api/LeanBlog/Theme/index.html
-          grep -q '/api/LeanBlog/Markdown/#LeanBlog___PostSource' .lake/build/site/posts/*/index.html
-          grep -q '/api/LeanBlog/Links/#LeanBlog___DeclarationIndex' .lake/build/site/posts/*/index.html
-          grep -q '/api/LeanBlog/Theme/#LeanBlog___Theme___make' .lake/build/site/posts/*/index.html
+          grep -q '/api/LeanBlog/Markdown/#LeanBlog___PostSource' .lake/build/site/2026-8-7-a-leanblog-post/index.html
+          grep -q '/api/LeanBlog/Links/#LeanBlog___DeclarationIndex' .lake/build/site/2026-8-7-a-leanblog-post/index.html
+          grep -q '/api/LeanBlog/Theme/#LeanBlog___Theme___make' .lake/build/site/2026-8-7-a-leanblog-post/index.html
       - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
         with:
           token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}

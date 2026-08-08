@@ -67,7 +67,7 @@ jobs:
             --docs-directory api
           test -s .lake/build/pages/index.html
           test -s .lake/build/pages/api/LeanBlog/Markdown/index.html
-          grep -q "$docs_root/LeanBlog/Markdown/#LeanBlog___PostSource" .lake/build/pages/posts/*/index.html
+          grep -q "$docs_root/LeanBlog/Markdown/#LeanBlog___PostSource" .lake/build/pages/2026-8-7-a-leanblog-post/index.html
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
