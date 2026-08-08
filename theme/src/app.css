@@ -8,7 +8,7 @@
 @source "../../src";
 
 @theme {
-  --font-sans: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -18,33 +18,14 @@
     text-rendering: optimizeLegibility;
   }
 
-  [data-theme="light"] {
-    --color-base-100: oklch(98% 0.012 84);
-    --color-base-200: oklch(94.5% 0.018 84);
-    --color-base-300: oklch(87% 0.025 84);
-    --color-base-content: oklch(27% 0.025 55);
-    --color-primary: oklch(47% 0.16 292);
-    --color-primary-content: oklch(97% 0.012 84);
-  }
-
-  [data-theme="dark"] {
-    --color-base-100: oklch(25% 0.018 260);
-    --color-base-200: oklch(20% 0.022 260);
-    --color-base-300: oklch(35% 0.026 260);
-    --color-base-content: oklch(91% 0.018 90);
-    --color-primary: oklch(72% 0.16 292);
-    --color-primary-content: oklch(22% 0.04 292);
-  }
-
   body {
     @apply antialiased;
-    font-family: var(--font-sans);
   }
 }
 
 @layer components {
   .leanblog-prose {
-    @apply max-w-3xl text-[1.05rem] leading-8 text-base-content/85;
+    @apply max-w-3xl text-base leading-8 text-base-content/85;
   }
 
   .leanblog-prose h1 {
@@ -170,25 +151,8 @@
     @apply mx-auto h-auto max-w-full;
   }
 
-  .leanblog-home-intro {
-    @apply mx-auto mb-10 max-w-4xl border-y border-base-300 bg-base-100/70 px-6 py-8
-      text-center sm:px-10 sm:py-10;
-  }
-
-  .leanblog-home-intro .leanblog-prose {
-    @apply max-w-none text-lg leading-8;
-  }
-
-  .leanblog-home-intro .leanblog-prose h1 {
-    @apply mb-3 text-4xl font-bold tracking-tight sm:text-5xl;
-  }
-
-  .leanblog-home-intro .leanblog-prose p:last-child {
-    @apply mb-0 text-base-content/70;
-  }
-
   .post-list {
-    @apply m-0 grid list-none gap-5 p-0 lg:grid-cols-2;
+    @apply m-0 grid list-none gap-6 p-0 lg:grid-cols-2;
   }
 
   .post-list > li,
@@ -198,8 +162,6 @@
 
   .post-list .card-body {
     @apply min-w-0;
-    display: flex;
-    flex-direction: column;
   }
 
   .post-list .card-title {
@@ -207,27 +169,9 @@
   }
 
   .post-list .post-summary {
-    @apply text-sm leading-6 text-base-content/70;
-    max-height: 9rem;
+    max-height: 12rem;
     overflow: hidden;
     position: relative;
-  }
-
-  .post-list .post-summary h1 {
-    @apply mb-2 text-xl font-bold tracking-tight;
-  }
-
-  .post-list .post-summary h2,
-  .post-list .post-summary h3 {
-    @apply mt-3 mb-1 text-lg font-bold tracking-tight;
-  }
-
-  .post-list .post-summary p {
-    @apply mb-2;
-  }
-
-  .post-list .post-summary + a {
-    margin-top: auto;
   }
 
   .post-list .post-summary::after {
