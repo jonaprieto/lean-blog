@@ -92,8 +92,9 @@ jobs:
           grep -q 'class="mermaid"' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
           grep -q 'mermaid@11' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
           grep -q 'data-theme-toggle' .lake/build/site/index.html
-          grep -q 'href="../2026-8-3-sum-a-small-algebra-of-choices/"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'href="../2026-8-2-using-sum-in-another-post/"' .lake/build/site/2026-8-3-sum-a-small-algebra-of-choices/index.html
+          grep -q 'href="2026-8-3-sum-a-small-algebra-of-choices/"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
+          grep -q 'href="2026-8-2-using-sum-in-another-post/"' .lake/build/site/2026-8-3-sum-a-small-algebra-of-choices/index.html
+          ! grep -R -q 'href="../2026-' .lake/build/site --include='index.html'
           grep -q 'title="Declaration from `Sum, a small algebra of choices`"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'class="leanblog-related"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'href="tutorial/"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
