@@ -240,30 +240,23 @@ private def archiveEntry : Template := do
   pure #[{{
     <li class="post-list-item">
       <article class="post-entry">
+        <div class="post-entry-row">
           {{ match post.contents.metadata with
             | none => Html.empty
             | some md => {{
-              <div class="post-entry-meta">
-                <time datetime={{md.date.toIso8601String}}>{{displayDate md.date}}</time>
-                <span aria-hidden="true">"·"</span>
-                <span>{{toString (readingTime post)}} " min read"</span>
-              </div>
+              <time class="post-entry-date" datetime={{md.date.toIso8601String}}>
+                {{displayDate md.date}}</time>
             }}
           }}
           <h2 class="post-entry-title"><a href={{target ++ "/"}}>
             {{post.contents.titleString}}</a></h2>
           {{ match post.contents.metadata with
             | none => Html.empty
-            | some md => {{
-              <div class="post-entry-author">
-                <span>{{
-                  (md : Post.PartMetadata).authors.map
-                    ({{<span>{{Html.text true ·}}</span>}}) |>.toArray
-                }}</span>
-              </div>
-              {{tags path md}}
+            | some _ => {{
+              <span class="post-entry-details">{{toString (readingTime post)}} " min read"</span>
             }}
           }}
+        </div>
       </article>
     </li>
   }}]
