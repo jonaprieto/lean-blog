@@ -74,6 +74,7 @@ jobs:
           grep -q 'href="2026-8-2-using-sum-in-another-post/"' .lake/build/pages/2026-8-3-sum-a-small-algebra-of-choices/index.html
           grep -q 'title="Declaration from `Sum, a small algebra of choices`"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'class="leanblog-related"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
+          grep -q 'class="related-card-body"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'class="site-header"' .lake/build/pages/index.html
           grep -q 'class="post-list"' .lake/build/pages/index.html
           grep -q 'class="post-entry-row"' .lake/build/pages/index.html

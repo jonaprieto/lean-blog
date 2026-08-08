@@ -109,6 +109,7 @@ jobs:
           ! grep -R -q 'href="../2026-' .lake/build/site --include='index.html'
           grep -q 'title="Declaration from `Sum, a small algebra of choices`"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'class="leanblog-related"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
+          grep -q 'class="related-card-body"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'href="tutorial/"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
       - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
         with:

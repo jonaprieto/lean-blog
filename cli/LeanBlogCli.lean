@@ -309,7 +309,7 @@ private def relatedCard (post : LoadedPost) : Verso.Output.Html :=
   let dateAndTags := post.source.date.toIso8601String ++
     (if tags.isEmpty then "" else " · " ++ tags)
   Verso.Output.Html.tag "a" #[("href", href), ("class", "leanblog-related-card")] <|
-    Verso.Output.Html.tag "div" #[("class", "card-body p-5")] <|
+    Verso.Output.Html.tag "div" #[("class", "related-card-body")] <|
       Verso.Output.Html.seq #[
         Verso.Output.Html.tag "h3" #[] (.text true post.source.title),
         Verso.Output.Html.tag "p" #[] (.text true dateAndTags)
