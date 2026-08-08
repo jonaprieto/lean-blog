@@ -52,11 +52,17 @@ private def tags (metadata : Post.PartMetadata) : Html :=
         {{<span class="badge badge-ghost">{{tag.name}}</span>}}}}
     </div>}}
 
+private def mermaidAssets : Html :=
+  let script := "import mermaid from \"https://cdn.jsdelivr.net/npm/mermaid@11/" ++
+    "dist/mermaid.esm.min.mjs\";\n" ++
+    "mermaid.initialize({ startOnLoad: true, securityLevel: \"strict\" });"
+  {{<script type="module">{{Html.text false script}}</script>}}
+
 private def header : TemplateM Html := do
   let header ← builtinHeader
   let emptySegments := (← currentPath).toList.foldl
     (fun count segment => if segment.isEmpty then count + 1 else count) 0
-  if emptySegments == 0 then
+  let header ← if emptySegments == 0 then
     pure header
   else
     let relativeSegment := "../"
@@ -70,6 +76,7 @@ private def header : TemplateM Html := do
         pure <| some (.tag name attrs content)
       else
         pure none)
+  pure <| header ++ mermaidAssets
 
 private def primary : Template := do
   let posts := (← param? "posts").getD .empty

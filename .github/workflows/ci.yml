@@ -78,12 +78,16 @@ jobs:
           test -s .lake/build/site/2026-8-5-linking-across-leanblog-modules/index.html
           test -s .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           test -s .lake/build/site/2026-8-7-a-leanblog-post/index.html
+          test -s .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
           test -s .lake/build/site/api/LeanBlog/Markdown/index.html
           test -s .lake/build/site/api/LeanBlog/Links/index.html
           test -s .lake/build/site/api/LeanBlog/Theme/index.html
           grep -q '/api/LeanBlog/Markdown/#LeanBlog___PostSource' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q '/api/LeanBlog/Links/#LeanBlog___DeclarationIndex' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q '/api/LeanBlog/Theme/#LeanBlog___Theme___make' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'class="math inline"' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
+          grep -q 'class="mermaid"' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
+          grep -q 'mermaid@11' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
       - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
         with:
           token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}

@@ -60,9 +60,10 @@ lake exe leanblog check posts
 lake exe leanblog build posts
 ```
 
-The source argument can be one `.lean.md` file or a directory. Directory mode walks nested folders,
-sorts posts by path, and builds one archive. When the local Verso docs exist, `build` copies them
-into the site's `/api` directory so declaration links work in the generated site.
+The source argument can be one `.md` or `.lean.md` file or a directory. Directory mode walks nested
+folders, sorts posts by path, and builds one archive. When local Verso docs
+exist, `build` copies them into the site's `/api` directory so declaration links work in the
+generated site.
 "#
 
 structure LinkConfig where
@@ -135,12 +136,12 @@ private def parseCommand : List String → Except String Command
   | "init" :: _ => .error "init accepts at most one directory"
   | "check" :: source :: rest => do
     pure <| Command.check source (← parseLinkOptions rest {})
-  | "check" :: [] => .error "check expects a .lean.md source path or posts directory"
+  | "check" :: [] => .error "check expects a .md source path or posts directory"
   | "build" :: source :: rest =>
     do
       let config ← parseBuildOptions rest {}
       pure <| Command.build source config
-  | "build" :: [] => .error "build expects a .lean.md source path or posts directory"
+  | "build" :: [] => .error "build expects a .md source path or posts directory"
   | [] => .error usage
   | command :: _ => .error s!"Unknown command '{command}'\n\n{usage}"
 
@@ -289,21 +290,22 @@ structure LoadedPost where
   source : PostSource
 
 private def sourceFiles (sourcePath : String) : IO (Array System.FilePath) := do
+  let isMarkdown (path : System.FilePath) := path.toString.endsWith ".md"
   let path : System.FilePath := sourcePath
   unless ← path.pathExists do
     throw <| IO.userError s!"Source path not found: {sourcePath}"
   if ← path.isDir then
     let paths ← path.walkDir
     let files :=
-      (paths.filter fun path => path.toString.endsWith ".lean.md").qsort fun left right =>
+      (paths.filter isMarkdown).qsort fun left right =>
         left.toString < right.toString
     if files.isEmpty then
-      throw <| IO.userError s!"No .lean.md posts found below {sourcePath}"
+      throw <| IO.userError s!"No Markdown posts found below {sourcePath}"
     pure files
-  else if path.toString.endsWith ".lean.md" then
+  else if isMarkdown path then
     pure #[path]
   else
-    throw <| IO.userError s!"Expected a .lean.md file or posts directory: {sourcePath}"
+    throw <| IO.userError s!"Expected a .md file or posts directory: {sourcePath}"
 
 private def loadPost (path : System.FilePath) : IO LoadedPost := do
   let source ← IO.FS.readFile path

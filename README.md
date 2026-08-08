@@ -77,12 +77,12 @@ stylesheet with the commands above. The homepage is the post archive, and indivi
 nested below it. When `.lake/build/literate-html` exists, the build also copies the generated API
 documentation to `.lake/build/site/api`.
 
-Directory mode walks nested folders and sorts `.lean.md` files by path. A single file remains useful
+Directory mode walks nested folders and sorts `.md` and `.lean.md` files by path. A single file remains useful
 for a fast edit-check-render loop.
 
 Front matter supports `title`, `date`, `authors`, and comma-separated `tags`. Fenced `lean` blocks
-are rendered with Verso/SubVerso syntax highlighting, while `lean:` links resolve to the copied
-declaration pages.
+are rendered with Verso/SubVerso syntax highlighting, math uses KaTeX, and fenced `mermaid` blocks
+become diagrams. `lean:` links resolve to the copied declaration pages.
 
 ## GitHub Pages
 
@@ -90,8 +90,8 @@ Pushes to `main` build and deploy the example collection through
 [`.github/workflows/docs.yml`](.github/workflows/docs.yml). The workflow uses the Pages base path so
 the project site and its `/api` declaration links work at `https://jonaprieto.github.io/lean-blog/`.
 
-The current lowering slice covers paragraphs, headings, fenced code, inline emphasis, math,
-images, ordinary links, and declaration links. Lists, tables, block quotes, and raw HTML are
+The current lowering slice covers paragraphs, headings, fenced code, inline emphasis, KaTeX math,
+Mermaid diagrams, images, ordinary links, and declaration links. Lists, tables, block quotes, and raw HTML are
 rejected explicitly until their HTML semantics are defined for the blog theme.
 
 ## Build
@@ -102,7 +102,8 @@ lake build LeanBlog LeanBlog.Properties tests readme demo leanblog :literateHtml
 
 ## Design direction
 
-LeanBlog owns the `.lean.md` frontend, site indexing, references, collections, CLI, and theme.
+LeanBlog owns the Markdown frontend, `.lean.md` declaration links, site indexing, references,
+collections, CLI, and theme.
 Verso owns document lowering, Lean highlighting, and HTML generation. Tailwind and daisyUI are part
 of the first visual prototype and the generated starter site; the Lean build consumes the generated
 CSS at build time.

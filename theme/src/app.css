@@ -68,6 +68,14 @@
     color: #94a3b8;
   }
 
+  .leanblog-prose .mermaid {
+    @apply my-8 overflow-x-auto rounded-box bg-base-200 p-5;
+  }
+
+  .leanblog-prose .mermaid svg {
+    @apply mx-auto h-auto max-w-full;
+  }
+
   .post-list {
     @apply m-0 grid list-none gap-6 p-0 lg:grid-cols-2;
   }

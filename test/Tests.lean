@@ -42,4 +42,29 @@ def main : IO Unit := do
   ]
   unless part.content[0]? == some expected do
     throw <| IO.userError "declaration link lowering failed"
+  let richSource := "---\n" ++
+    "title: Math and diagrams\n" ++
+    "date: 2026-08-04\n" ++
+    "---\n\n" ++
+    "Inline $x^2$.\n\n" ++
+    "```mermaid\nflowchart LR\n  A --> B\n```\n"
+  let richPost ← match parsePost richSource with
+    | .ok post => pure post
+    | .error error => throw <| IO.userError error
+  let richPart ← match richPost.toPart DeclarationIndex.empty with
+    | .ok part => pure part
+    | .error error => throw <| IO.userError error
+  unless richPart.content.any fun block =>
+      match block with
+      | .para content => content.any fun inline =>
+        match inline with
+        | .math .inline "x^2" => true
+        | _ => false
+      | _ => false do
+    throw <| IO.userError "KaTeX math lowering failed"
+  unless richPart.content.any fun block =>
+      match block with
+      | .other (.blob _) #[] => true
+      | _ => false do
+    throw <| IO.userError "Mermaid lowering failed"
   IO.println "LeanBlog tests passed"

@@ -7,9 +7,9 @@ import VersoBlog
 import LeanBlog.Links
 
 /-!
-# `.lean.md` source
+# Markdown source
 
-The first source format is intentionally small and explicit:
+The source format is intentionally small and explicit:
 
 ```
 ---
@@ -28,10 +28,10 @@ misspelled declaration is a build error instead of a dead hyperlink.
 
 namespace LeanBlog
 
-open Verso Doc
+open Verso Doc Output Html
 open Verso.Genre.Blog
 
-/-- The source-level metadata shared by a `.lean.md` post and its Verso value. -/
+/-- The source-level metadata shared by a Markdown post and its Verso value. -/
 structure PostSource where
   /-- The title shown in the post and collection. -/
   title : String
@@ -83,7 +83,7 @@ private def parseFrontMatter (lines : List String) :
         let field ← parseField line
         collectFields (fields.concat field) more
     collectFields [] rest
-  | _ => .error "A .lean.md post must start with front matter delimited by '---'"
+  | _ => .error "A Markdown post must start with front matter delimited by '---'"
 
 private def field? (fields : List (String × String)) (key : String) : Option String :=
   fields.find? (·.fst == key) |>.map (·.snd)
@@ -93,7 +93,7 @@ private def requireField (fields : List (String × String)) (key : String) : Exc
   | some value => .ok value
   | none => .error s!"Front matter is missing '{key}'"
 
-/-- Parse a `.lean.md` source string into a post with a CommonMark body. -/
+/-- Parse a Markdown source string into a post with a CommonMark body. -/
 def parsePost (source : String) : Except String PostSource := do
   let (fields, bodyLines) ← parseFrontMatter (source.splitOn "\n")
   let title ← requireField fields "title"
@@ -104,7 +104,8 @@ def parsePost (source : String) : Except String PostSource := do
   let tagsString := field? fields "tags" |>.getD ""
   let tags := tagsString.splitOn "," |>.map (·.trimAscii.toString) |>.filter (!·.isEmpty)
   let body := String.intercalate "\n" bodyLines
-  let some document := MD4Lean.parse body (parserFlags := MD4Lean.MD_DIALECT_GITHUB)
+  let some document := MD4Lean.parse body
+      (parserFlags := MD4Lean.MD_DIALECT_GITHUB ||| MD4Lean.MD_FLAG_LATEXMATHSPANS)
     | .error "Markdown parser rejected the post body"
   pure {title, date, authors, tags, document}
 
@@ -132,10 +133,10 @@ private def linkedTarget (index : DeclarationIndex) (href : String) : Except Str
 
 mutual
   private def lowerInline (index : DeclarationIndex) : MD4Lean.Text → Except String (Inline Page)
-    | .normal text => pure (.text text)
-    | .nullchar => pure (.text "�")
-    | .br text | .softbr text => pure (.linebreak text)
-    | .entity text => pure (.text text)
+    | .normal value => pure (Verso.Doc.Inline.text value)
+    | .nullchar => pure (Verso.Doc.Inline.text "�")
+    | .br value | .softbr value => pure (.linebreak value)
+    | .entity value => pure (Verso.Doc.Inline.text value)
     | .em content => .emph <$> lowerInlines index content
     | .strong content => .bold <$> lowerInlines index content
     | .u content => .emph <$> lowerInlines index content
@@ -164,6 +165,9 @@ mutual
 
 end
 
+private def mermaidBlock (code : String) : Block Page :=
+  .other (.blob {{<div class="mermaid">{{Html.text true code}}</div>}}) #[]
+
 private def lowerBlock (index : DeclarationIndex)
     (highlight? : String → Option SubVerso.Highlighting.Highlighted) :
     MD4Lean.Block → Except String (Block Page)
@@ -171,21 +175,24 @@ private def lowerBlock (index : DeclarationIndex)
     | .header level content => do
       let title ← lowerInlines index content
       pure <| .other (.docstringSection (level - 1)) #[.para title]
-    | .code _info _lang _fence content =>
+    | .code _info lang _fence content => do
       let code := String.join content.toList
-      match highlight? code with
-      | some highlighted =>
-        pure <| .other (.highlightedCode {
-          contextName := .anonymous
-          showProofStates := false
-        } highlighted) #[.code code]
-      | none => pure (.code code)
-    | .blockquote _ => .error "Block quotes are not supported in .lean.md posts yet"
-    | .ul _ _ _ => .error "Lists are not supported in .lean.md posts yet"
-    | .ol _ _ _ _ => .error "Lists are not supported in .lean.md posts yet"
+      if (← attrText lang) == "mermaid" then
+        pure <| mermaidBlock code
+      else
+        match highlight? code with
+        | some highlighted =>
+          pure <| .other (.highlightedCode {
+            contextName := .anonymous
+            showProofStates := false
+          } highlighted) #[.code code]
+        | none => pure (.code code)
+    | .blockquote _ => .error "Block quotes are not supported in Markdown posts yet"
+    | .ul _ _ _ => .error "Lists are not supported in Markdown posts yet"
+    | .ol _ _ _ _ => .error "Lists are not supported in Markdown posts yet"
     | .hr => pure (.other (.htmlDiv "leanblog-rule") #[])
-    | .html _ => .error "Raw HTML is not supported in .lean.md posts"
-    | .table _ _ => .error "Tables are not supported in .lean.md posts yet"
+    | .html _ => .error "Raw HTML is not supported in Markdown posts"
+    | .table _ _ => .error "Tables are not supported in Markdown posts yet"
 
 /-- Lower a parsed post to the Verso blog genre after resolving all `lean:` links. -/
 def PostSource.toPartWithHighlight
@@ -197,7 +204,7 @@ def PostSource.toPartWithHighlight
     name := tag
     slug := slugifyTitle tag
   }
-  pure <| Part.mk #[.text source.title] source.title (some {
+  pure <| Part.mk #[Verso.Doc.Inline.text source.title] source.title (some {
     date := source.date
     authors := source.authors
     categories
