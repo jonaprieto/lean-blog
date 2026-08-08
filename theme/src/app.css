@@ -130,6 +130,35 @@
     @apply mt-4 flex flex-wrap items-center gap-2 text-sm text-base-content/60;
   }
 
+  .post-toc {
+    @apply my-8 border-y border-base-300 py-3;
+  }
+
+  .post-toc summary {
+    @apply cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.14em]
+      text-base-content/60;
+  }
+
+  .post-toc summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .post-toc nav ul {
+    @apply mt-3 grid gap-1 sm:grid-cols-2;
+  }
+
+  .post-toc-link {
+    @apply block text-sm text-base-content/70 no-underline hover:text-primary;
+  }
+
+  .post-toc-level-2 {
+    @apply pl-3;
+  }
+
+  .post-toc-level-3 {
+    @apply pl-6 text-xs;
+  }
+
   .leanblog-prose {
     @apply max-w-3xl text-base leading-8 text-base-content/85;
   }
