@@ -6,9 +6,9 @@ authors: Your Name
 
 # A LeanBlog post
 
-Write ordinary Markdown here. When the site index contains a target, link to a Lean declaration
+Write ordinary Markdown here. Link to a declaration from the generated Verso cross-reference index
 with standard Markdown syntax:
 
-[`Sum`](lean:Sum)
+[`PostSource`](lean:LeanBlog.PostSource)
 
-The same source format will later feed the collection page and the Verso HTML renderer.
+For declarations documented outside this project, use a `targets.tsv` override.

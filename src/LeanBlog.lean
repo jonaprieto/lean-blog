@@ -11,8 +11,8 @@ import LeanBlog.Theme
 
 The Lean-aware publishing framework built on top of Verso.
 
-This foundation keeps declaration targets separate from rendering. Later layers will use the same
-index for prose references and links emitted by highlighted Lean code.
+This foundation keeps declaration targets separate from rendering. The CLI populates the same index
+from Verso's generated cross-reference data, while callers can still provide explicit targets.
 -/
 
 /-!

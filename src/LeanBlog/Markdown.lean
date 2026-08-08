@@ -122,7 +122,8 @@ private def linkedTarget (index : DeclarationIndex) (href : String) : Except Str
   let name ← leanName (href.drop 5 |>.toString)
   match index.resolveOne name with
   | some target => pure target
-  | none => .error s!"No declaration target registered for 'lean:{name}'"
+  | none => .error <| s!"No declaration target registered for 'lean:{name}'; " ++
+      "provide a generated xref.json or an explicit target"
 
 mutual
   private def lowerInline (index : DeclarationIndex) : MD4Lean.Text → Except String (Inline Page)

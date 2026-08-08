@@ -6,12 +6,13 @@
 
 LeanBlog is a Lean-aware publishing framework built on top of Verso. It is intended to make blogs,
 documentation, module catalogues, and tutorials pleasant to author while preserving links from
-Lean names to their generated HTML definitions. The first source slice parses `.lean.md` posts,
-resolves explicit `lean:` links, and lowers them into Verso blog values.
+Lean names to their generated HTML definitions. The CLI reads Verso's generated `xref.json`
+automatically, while explicit target files remain available for external documentation.
 
 ## What it provides
 
-Declaration destinations use a name-indexed map:
+Declaration destinations can be supplied explicitly when a target lives outside the generated
+Verso documentation:
 
 ```lean
 import LeanBlog
@@ -31,12 +32,12 @@ date: 2026-08-07
 authors: Jonathan Prieto-Cubides
 ---
 
-The [`Sum`](lean:Sum) type has two constructors.
+The [`PostSource`](lean:LeanBlog.PostSource) type represents a parsed post.
 ```
 
-`lean:` links must resolve through a `DeclarationIndex`; an unresolved declaration is a build error.
-See [the starter post](examples/posts/starter.lean.md). Site generation and the CLI are the next
-layer, while the visual collection prototype is already available.
+`lean:` links resolve through the generated Verso cross-reference index by default; an unresolved
+declaration is a build error. Use `--targets targets.tsv` for declarations documented elsewhere.
+See [the starter post](examples/posts/starter.lean.md) and the visual collection prototype.
 
 ## Quick start
 
@@ -61,12 +62,13 @@ Build the starter post through Verso:
 ```text
 lake exe leanblog init .
 lake build leanblog
-lake exe leanblog check examples/posts/starter.lean.md --targets examples/targets.tsv
-lake exe leanblog build examples/posts/starter.lean.md --targets examples/targets.tsv
+lake build :literateHtml
+lake exe leanblog check examples/posts/starter.lean.md
+lake exe leanblog build examples/posts/starter.lean.md
 ```
 
-`leanblog init` is safe to rerun: it creates `posts/starter.lean.md`, `targets.tsv`, and
-`README.md` only when they do not already exist, so it will not overwrite writing in progress.
+`leanblog init` is safe to rerun: it creates `posts/starter.lean.md` and `README.md` only when they
+do not already exist, so it will not overwrite writing in progress.
 
 The generated site is in `.lake/build/site`; open `.lake/build/site/index.html` after building the
 stylesheet with the commands above.
@@ -78,7 +80,7 @@ rejected explicitly until their HTML semantics are defined for the blog theme.
 ## Build
 
 ```text
-lake build LeanBlog LeanBlog.Properties tests readme demo leanblog
+lake build LeanBlog LeanBlog.Properties tests readme demo leanblog :literateHtml
 ```
 
 ## Design direction

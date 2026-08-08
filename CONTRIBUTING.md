@@ -7,12 +7,13 @@ the private `precommit-lean` repository used by CI.
 
 ```text
 lake build LeanBlog LeanBlog.Properties tests readme demo leanblog
+lake build :literateHtml
 ./.lake/build/bin/tests
 npm ci --prefix theme
 npm run build:css --prefix theme
 ./.lake/build/bin/leanblog init .lake/build/init-test
-./.lake/build/bin/leanblog check examples/posts/starter.lean.md --targets examples/targets.tsv
-./.lake/build/bin/leanblog build examples/posts/starter.lean.md --targets examples/targets.tsv
+./.lake/build/bin/leanblog check examples/posts/starter.lean.md
+./.lake/build/bin/leanblog build examples/posts/starter.lean.md
 pre-commit run --all-files
 ```
 

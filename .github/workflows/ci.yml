@@ -51,6 +51,8 @@ jobs:
       - uses: leanprover/lean-action@v1
         with:
           build-args: "LeanBlog LeanBlog.Properties tests readme demo leanblog"
+      - name: Generate Verso cross-reference index
+        run: lake build :literateHtml
       - name: Run tests
         run: ./.lake/build/bin/tests
       - name: Verify README examples
@@ -70,11 +72,10 @@ jobs:
         run: |
           ./.lake/build/bin/leanblog init .lake/build/init-test
           test -s .lake/build/init-test/posts/starter.lean.md
-          test -s .lake/build/init-test/targets.tsv
-          ./.lake/build/bin/leanblog check examples/posts/starter.lean.md --targets examples/targets.tsv
-          ./.lake/build/bin/leanblog build examples/posts/starter.lean.md --targets examples/targets.tsv
+          ./.lake/build/bin/leanblog check examples/posts/starter.lean.md
+          ./.lake/build/bin/leanblog build examples/posts/starter.lean.md
           test -s .lake/build/site/index.html
-          grep -q '/api/Sum.html#decl-Sum' .lake/build/site/posts/*/index.html
+          grep -q '/api/LeanBlog/Markdown/#LeanBlog___PostSource' .lake/build/site/posts/*/index.html
       - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
         with:
           token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
