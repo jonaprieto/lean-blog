@@ -175,7 +175,7 @@ private def primary : Template := do
                   aria-label="Open navigation">"☰"</label>
               </div>
               <div class="flex-1">
-                <a class="text-lg font-black tracking-tight" href=".">"LeanBlog"</a>
+              <a class="text-xl font-bold tracking-tight" href=".">"LeanBlog"</a>
                 <span class="ml-3 hidden text-sm text-base-content/55 sm:inline">
                   "Lean-aware publishing"</span>
               </div>
@@ -187,8 +187,8 @@ private def primary : Template := do
               </div>
             </header>
             <main class="w-full flex-1">
-              <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-                {{← param "content"}}
+              <div class="leanblog-shell mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+                <div class="leanblog-home-intro">{{← param "content"}}</div>
                 {{posts}}
               </div>
             </main>
@@ -197,7 +197,7 @@ private def primary : Template := do
           <div class="drawer-side z-40">
             <label for="leanblog-drawer" class="drawer-overlay"
               aria-label="Close navigation"></label>
-            <aside class="flex min-h-full w-72 flex-col border-r border-base-300 bg-base-100 p-6">
+            <aside class="flex min-h-full w-64 flex-col border-r border-base-300 bg-base-100 p-5">
               <div>
                 <p class="text-xs font-bold uppercase tracking-[0.2em] text-primary">"LeanBlog"</p>
                 <p class="mt-2 text-sm leading-6 text-base-content/60">
@@ -224,7 +224,8 @@ private def primary : Template := do
 
 private def page : Template := do
   pure {{
-    <article class="mx-auto max-w-4xl rounded-box bg-base-100 p-6 shadow-sm sm:p-10 lg:p-12">
+    <article class="mx-auto max-w-4xl rounded-xl border border-base-300 bg-base-100 p-6
+      shadow-sm sm:p-10 lg:p-12">
       <h1 class="mb-8 text-4xl font-black tracking-tight sm:text-5xl">{{← param "title"}}</h1>
       <div class="leanblog-prose">{{← param "content"}}</div>
     </article>
@@ -234,7 +235,7 @@ private def post : Template := do
   let path := (← param? (α := String) "path").getD ""
   pure {{
     <div class="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start">
-      <article class="rounded-box bg-base-100 p-6 shadow-sm sm:p-10 lg:p-12">
+      <article class="rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm sm:p-10 lg:p-12">
         <div class="mb-10 border-b border-base-300 pb-8">
           <p class="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-primary">
             "A LeanBlog post"</p>
@@ -277,8 +278,8 @@ private def archiveEntry : Template := do
   let target := if path.isEmpty then name else path ++ "/" ++ name
   pure #[{{
     <li class="h-full">
-      <article class="card h-full border border-base-300 bg-base-100 shadow-sm transition
-         hover:-translate-y-0.5 hover:shadow-md">
+      <article class="card h-full rounded-xl border border-base-300 bg-base-100 shadow-sm
+        transition hover:-translate-y-0.5 hover:shadow-md">
         <div class="card-body">
           {{ match post.contents.metadata with
             | none => Html.empty
