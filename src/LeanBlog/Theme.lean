@@ -57,17 +57,18 @@ private def tags (path : String) (metadata : Post.PartMetadata) : Html :=
           hover:badge-primary">{{tag.name}}</a>}}}}
     </div>}}
 
-private def categoryNav (categories : Post.Categories) : Html :=
+private def categoryNav (categories : Post.Categories) : TemplateM Html := do
   if categories.categories.isEmpty then
-    Html.empty
+    pure Html.empty
   else
-    {{<div class="mt-8 border-t border-base-300 pt-6">
+    let root := (← currentPath).toList.take 1
+    let entries ← categories.categories.toList.mapM fun (_, category) => do
+      let href ← relative (root ++ [category.slug])
+      pure {{<li><a href={{dirPathToString href (trailing := true)}}>{{category.name}}</a></li>}}
+    pure {{<div class="mt-8 border-t border-base-300 pt-6">
       <p class="mb-3 text-xs font-bold uppercase tracking-[0.16em]
         text-base-content/50">"Topics"</p>
-      <ul class="menu menu-sm -mx-3 rounded-box p-0">
-        {{categories.categories.map fun (href, category) =>
-          {{<li><a href={{href}}>{{category.name}}</a></li>}}}}
-      </ul>
+      <ul class="menu menu-sm -mx-3 rounded-box p-0">{{entries.toArray}}</ul>
     </div>}}
 
 private def mermaidAssets : Html :=
@@ -156,6 +157,7 @@ private def header : TemplateM Html := do
 private def primary : Template := do
   let posts := (← param? "posts").getD .empty
   let categories := (← param? (α := Post.Categories) "categories").getD (.mk #[])
+  let topics ← categoryNav categories
   pure {{
     <html lang="en" data-theme="light">
       <head>
@@ -209,7 +211,7 @@ private def primary : Template := do
                 <ul class="menu menu-sm -mx-3 rounded-box p-0">
                   <li><a class="font-semibold" href=".">"All posts"</a></li>
                 </ul>
-                {{categoryNav categories}}
+                {{topics}}
               </nav>
               <div class="mt-auto border-t border-base-300 pt-6 text-xs leading-5
                 text-base-content/50">
