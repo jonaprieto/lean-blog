@@ -73,15 +73,33 @@ private def categoryNav (categories : Post.Categories) : Html :=
 private def mermaidAssets : Html :=
   let script := "import mermaid from \"https://cdn.jsdelivr.net/npm/mermaid@11/" ++
     "dist/mermaid.esm.min.mjs\";\n" ++
-    "mermaid.initialize({ startOnLoad: true, securityLevel: \"strict\" });"
+    "const renderMermaid = async () => {\n" ++
+    "  const theme = document.documentElement.dataset.theme === \"dark\" ? " ++
+    "\"dark\" : \"default\";\n" ++
+    "  const diagrams = Array.from(document.querySelectorAll(\".mermaid\"));\n" ++
+    "  if (diagrams.length === 0) return;\n" ++
+    "  for (const diagram of diagrams) {\n" ++
+    "    if (!diagram.dataset.mermaidSource) diagram.dataset.mermaidSource = " ++
+    "diagram.textContent || \"\";\n" ++
+    "    diagram.removeAttribute(\"data-processed\");\n" ++
+    "    diagram.textContent = diagram.dataset.mermaidSource;\n" ++
+    "  }\n" ++
+    "  mermaid.initialize({ startOnLoad: false, securityLevel: \"strict\", theme });\n" ++
+    "  await mermaid.run({ nodes: diagrams });\n" ++
+    "};\n" ++
+    "document.addEventListener(\"DOMContentLoaded\", renderMermaid);\n" ++
+    "document.addEventListener(\"leanblog-theme-change\", renderMermaid);"
   {{<script type="module">{{Html.text false script}}</script>}}
 
 private def themeAssets : Html :=
   let script := r#"
 (() => {
   const root = document.documentElement;
-  const stored = localStorage.getItem('leanblog-theme');
-  const preferred = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const stored = (() => {
+    try { return localStorage.getItem('leanblog-theme'); } catch (_) { return null; }
+  })();
+  const preferred = typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   root.dataset.theme = stored === 'dark' || stored === 'light' ? stored : preferred;
   const update = () => {
     const dark = root.dataset.theme === 'dark';
@@ -95,8 +113,9 @@ private def themeAssets : Html :=
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
       button.addEventListener('click', () => {
         root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
-        localStorage.setItem('leanblog-theme', root.dataset.theme);
+        try { localStorage.setItem('leanblog-theme', root.dataset.theme); } catch (_) {}
         update();
+        document.dispatchEvent(new CustomEvent('leanblog-theme-change'));
       });
     });
   });
