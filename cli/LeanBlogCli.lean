@@ -265,9 +265,80 @@ private def loadTargets (config : LinkConfig) : IO DeclarationIndex := do
     index ← loadXref path config.docsRoot index
   pure index
 
+private def codeLinks (index : DeclarationIndex) (name : Lean.Name) :
+    Array Verso.Code.CodeLink :=
+  (index.resolve name).getD #[] |>.map fun target => {
+    shortDescription := "docs"
+    description := target.description
+    href := target.href
+  }
+
+private def codeLinkTargets (index : DeclarationIndex) :
+    Verso.Code.LinkTargets TraverseContext where
+  const := fun name _ => codeLinks index name
+  option := fun name _ => codeLinks index name
+  definition := fun name _ => codeLinks index name
+  moduleName := fun name _ => codeLinks index name
+
 structure LoadedPost where
   path : System.FilePath
   source : PostSource
+
+private def relatedLimit : Nat := 3
+
+private def sharedTagCount (left right : List String) : Nat :=
+  left.foldl (init := 0) fun count tag =>
+    if right.contains tag then count + 1 else count
+
+private def newerDate (left right : Date) : Bool :=
+  if left.year != right.year then decide (left.year > right.year)
+  else if left.month != right.month then decide (left.month > right.month)
+  else decide (left.day > right.day)
+
+private def relatedPosts (current : LoadedPost) (posts : Array LoadedPost) : Array LoadedPost :=
+  let candidates := posts.filter (·.path != current.path)
+  (candidates.qsort fun left right =>
+    let leftScore := sharedTagCount current.source.tags left.source.tags
+    let rightScore := sharedTagCount current.source.tags right.source.tags
+    if leftScore == rightScore then newerDate left.source.date right.source.date
+    else decide (leftScore > rightScore)).take relatedLimit
+
+private def relatedCard (post : LoadedPost) : Verso.Output.Html :=
+  let href := "../" ++ defaultPostName post.source.date post.source.title ++ "/"
+  let tags := String.intercalate " · " post.source.tags
+  let dateAndTags := post.source.date.toIso8601String ++
+    (if tags.isEmpty then "" else " · " ++ tags)
+  Verso.Output.Html.tag "a" #[("href", href), ("class", "leanblog-related-card")] <|
+    Verso.Output.Html.tag "div" #[("class", "card-body p-5")] <|
+      Verso.Output.Html.seq #[
+        Verso.Output.Html.tag "h3" #[] (.text true post.source.title),
+        Verso.Output.Html.tag "p" #[] (.text true dateAndTags)
+      ]
+
+private def relatedSection (posts : Array LoadedPost) : String :=
+  let content := Verso.Output.Html.seq #[
+    Verso.Output.Html.tag "h2" #[
+      ("id", "leanblog-related-title"), ("class", "leanblog-related-heading")
+    ] (.text true "Continue reading"),
+    Verso.Output.Html.tag "div" #[
+      ("class", "leanblog-related-grid")
+    ] (Verso.Output.Html.seq (posts.map relatedCard))
+  ]
+  Verso.Output.Html.asString (breakLines := false) <|
+    Verso.Output.Html.tag "section" #[
+      ("class", "leanblog-related"), ("aria-labelledby", "leanblog-related-title")
+    ] content
+
+private def injectRelatedPosts (output : String) (posts : Array LoadedPost) : IO Unit := do
+  let marker := "<div id=\"leanblog-related-posts\"></div>"
+  for current in posts do
+    let slug := defaultPostName current.source.date current.source.title
+    let page := (System.FilePath.mk output).join slug |>.join "index.html"
+    let html ← IO.FS.readFile page
+    unless html.contains marker do
+      throw <| IO.userError s!"Verso post template marker not found in {page}"
+    let related := relatedPosts current posts
+    IO.FS.writeFile page <| html.replace marker (relatedSection related)
 
 private def sourceFiles (sourcePath : String) : IO (Array System.FilePath) := do
   let isMarkdown (path : System.FilePath) := path.toString.endsWith ".md"
@@ -297,27 +368,39 @@ private def loadPosts (sourcePath : String) : IO (Array LoadedPost) := do
   let paths ← sourceFiles sourcePath
   paths.mapM loadPost
 
+private structure LeanCodeBlock where
+  postPath : System.FilePath
+  source : String
+
 private def markdownText (text : Array MD4Lean.AttrText) : String :=
   text.foldl (init := "") fun result part =>
     match part with
     | .normal value | .entity value => result ++ value
     | .nullchar => result
 
-private def leanCodeBlocks (posts : Array LoadedPost) : Array String := Id.run do
+private def leanCodeBlocks (posts : Array LoadedPost) : Array LeanCodeBlock := Id.run do
   let mut blocks := #[]
   for post in posts do
     for block in post.source.document.blocks do
       match block with
       | .code _info lang _fence content =>
         if markdownText lang == "lean" || markdownText lang == "lean4" then
-          blocks := blocks.push (String.join content.toList)
+          blocks := blocks.push {
+            postPath := post.path
+            source := String.join content.toList
+          }
       | _ => pure ()
   blocks
 
-private def highlightLean (code : String) : IO (Option SubVerso.Highlighting.Highlighted) := do
+private structure HighlightResult where
+  rendered : SubVerso.Highlighting.Highlighted
+  environment : Lean.Environment
+  declarations : Array Lean.Name
+
+private def highlightLean (code : String) (environment : Lean.Environment) :
+    IO (Option HighlightResult) := do
   try
     let inputCtx := Parser.mkInputContext code "<leanblog-code>"
-    let environment ← Lean.mkEmptyEnvironment
     let commandState : Lean.Elab.Command.State := {
       env := environment
       maxRecDepth := 100000
@@ -345,7 +428,14 @@ private def highlightLean (code : String) : IO (Option SubVerso.Highlighting.Hig
       cancelTk? := none
     }
     match ← EIO.toIO' (action.run commandContext |>.run finalState.commandState) with
-    | .ok (highlighted, _) => pure <| some highlighted
+    | .ok (highlighted, commandState) =>
+      let declarations := commandState.env.constants.toList.filterMap fun (name, _) =>
+        if environment.constants.find? name |>.isSome then none else some name
+      pure <| some {
+        rendered := highlighted
+        environment := commandState.env
+        declarations := declarations.toArray
+      }
     | .error _ => pure none
   catch _ =>
     pure none
@@ -353,13 +443,35 @@ private def highlightLean (code : String) : IO (Option SubVerso.Highlighting.Hig
 private structure HighlightedCode where
   source : String
   rendered : SubVerso.Highlighting.Highlighted
+  declarations : Array Lean.Name
+  target : Target
 
 private def highlightLeanCodes (posts : Array LoadedPost) : IO (Array HighlightedCode) := do
   let mut highlighted := #[]
-  for source in leanCodeBlocks posts do
-    if let some rendered ← highlightLean source then
-      highlighted := highlighted.push {source, rendered}
+  let mut environment ← Lean.mkEmptyEnvironment
+  for block in leanCodeBlocks posts do
+    if let some result ← highlightLean block.source environment then
+      let some post := posts.find? (·.path == block.postPath)
+        | continue
+      let slug := defaultPostName post.source.date post.source.title
+      let target : Target := {
+        href := "../" ++ slug ++ "/"
+        description := s!"Declaration from `{post.source.title}`"
+      }
+      highlighted := highlighted.push {
+        source := block.source
+        rendered := result.rendered
+        declarations := result.declarations
+        target
+      }
+      environment := result.environment
   pure highlighted
+
+private def addLocalTargets (index : DeclarationIndex)
+    (highlighted : Array HighlightedCode) : DeclarationIndex :=
+  highlighted.foldl (init := index) fun index code =>
+    code.declarations.foldl (init := index) fun index name =>
+      index.add name code.target
 
 private def lowerPost (post : LoadedPost) (index : DeclarationIndex)
     (highlight? : String → Option SubVerso.Highlighting.Highlighted) : IO (Part Post) := do
@@ -379,6 +491,7 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
   let posts ← loadPosts sourcePath
   let index ← loadTargets config.links
   let highlighted ← highlightLeanCodes posts
+  let index := addLocalTargets index highlighted
   let highlight? := fun source =>
     highlighted.find? (·.source == source) |>.map (·.rendered)
   let contents ← posts.mapM (fun post => lowerPost post index highlight?)
@@ -390,9 +503,11 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
   -- A root blog is not registered by Verso's root-site traversal. An empty blog child keeps the
   -- archive at `/` while using the normal directory-blog path that registers categories correctly.
   let site : Site := .page `home home #[.blog "" `blog home blogPosts]
-  let status ← blogMain (Theme.make css) site {} ["--output", config.output]
+  let status ← blogMain (Theme.make css) site (codeLinkTargets index)
+    ["--output", config.output]
   if status != 0 then
     throw <| IO.userError s!"Verso failed to build {sourcePath}"
+  injectRelatedPosts config.output posts
   if ← copyGeneratedDocs config then
     IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.docsDirectory}"
   IO.println s!"built {config.output}"

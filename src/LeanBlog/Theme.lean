@@ -255,6 +255,7 @@ private def post : Template := do
           }}
         </div>
         <div class="leanblog-prose">{{← param "content"}}</div>
+        <div id="leanblog-related-posts"></div>
       </article>
       <aside class="hidden lg:block">
         <div class="sticky top-24 rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">

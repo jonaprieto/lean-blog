@@ -86,7 +86,10 @@ for a fast edit-check-render loop.
 
 Front matter supports `title`, `date`, `authors`, and comma-separated `tags`. Fenced `lean` blocks
 are rendered with Verso/SubVerso syntax highlighting, math uses KaTeX, and fenced `mermaid` blocks
-become diagrams. `lean:` links resolve to the copied declaration pages.
+become diagrams. Lean declarations introduced by earlier code fences are carried into later fences,
+so references such as `Sum` can link back to their defining post. Each post also receives a small
+generated “Continue reading” section based on its neighboring topics. `lean:` links resolve to the
+copied declaration pages.
 
 ## GitHub Pages
 

@@ -129,13 +129,17 @@
   }
 
   @media (hover: hover) {
+    .leanblog-prose .hl.lean .token:hover,
     .leanblog-prose .hl.lean .token.binding-hl,
     .leanblog-prose .hl.lean .literal:hover,
     .leanblog-prose .hl.lean .token.typed:hover,
     .leanblog-prose .hl.lean .has-info.error:hover,
     .leanblog-prose .hl.lean .has-info.warning:hover,
     .leanblog-prose .hl.lean .has-info.information:hover {
-      background-color: var(--color-base-300);
+      background-color: color-mix(in oklab, var(--color-neutral-content) 16%,
+        var(--color-neutral));
+      color: var(--color-neutral-content);
+      border-radius: 0.2rem;
     }
   }
 
@@ -179,5 +183,30 @@
     pointer-events: none;
     position: absolute;
     right: 0;
+  }
+
+  .leanblog-related {
+    @apply mt-12 border-t border-base-300 pt-8;
+  }
+
+  .leanblog-related-heading {
+    @apply text-xs font-bold uppercase tracking-[0.16em] text-base-content/55;
+  }
+
+  .leanblog-related-grid {
+    @apply mt-4 grid gap-4 sm:grid-cols-2;
+  }
+
+  .leanblog-related-card {
+    @apply card border border-base-300 bg-base-200/55 no-underline transition
+      hover:-translate-y-0.5 hover:border-primary/45 hover:bg-base-200 hover:shadow-sm;
+  }
+
+  .leanblog-related-card h3 {
+    @apply text-base font-bold text-base-content;
+  }
+
+  .leanblog-related-card p {
+    @apply mt-2 text-xs leading-5 text-base-content/60;
   }
 }
