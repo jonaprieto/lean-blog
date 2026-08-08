@@ -304,7 +304,7 @@ private def relatedPosts (current : LoadedPost) (posts : Array LoadedPost) : Arr
     else decide (leftScore > rightScore)).take relatedLimit
 
 private def relatedCard (post : LoadedPost) : Verso.Output.Html :=
-  let href := "../" ++ defaultPostName post.source.date post.source.title ++ "/"
+  let href := defaultPostName post.source.date post.source.title ++ "/"
   let tags := String.intercalate " · " post.source.tags
   let dateAndTags := post.source.date.toIso8601String ++
     (if tags.isEmpty then "" else " · " ++ tags)
@@ -455,7 +455,7 @@ private def highlightLeanCodes (posts : Array LoadedPost) : IO (Array Highlighte
         | continue
       let slug := defaultPostName post.source.date post.source.title
       let target : Target := {
-        href := "../" ++ slug ++ "/"
+        href := slug ++ "/"
         description := s!"Declaration from `{post.source.title}`"
       }
       highlighted := highlighted.push {

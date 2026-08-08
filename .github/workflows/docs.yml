@@ -70,10 +70,23 @@ jobs:
           test -s .lake/build/pages/2026-8-3-sum-a-small-algebra-of-choices/index.html
           test -s .lake/build/pages/tutorial/index.html
           grep -q "$docs_root/LeanBlog/Markdown/#LeanBlog___PostSource" .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'href="../2026-8-3-sum-a-small-algebra-of-choices/"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'href="../2026-8-2-using-sum-in-another-post/"' .lake/build/pages/2026-8-3-sum-a-small-algebra-of-choices/index.html
+          grep -q 'href="2026-8-3-sum-a-small-algebra-of-choices/"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
+          grep -q 'href="2026-8-2-using-sum-in-another-post/"' .lake/build/pages/2026-8-3-sum-a-small-algebra-of-choices/index.html
           grep -q 'title="Declaration from `Sum, a small algebra of choices`"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'class="leanblog-related"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
+          ! grep -R -q 'href="../2026-' .lake/build/pages --include='index.html'
+          python3 - <<'PY'
+          from pathlib import Path
+
+          html = Path('.lake/build/pages/index.html').read_text()
+          topics = (
+              'architecture', 'data-types', 'examples', 'getting-started', 'lean',
+              'links', 'markdown', 'math', 'mermaid', 'tutorial',
+          )
+          for topic in topics:
+              assert f'href="/{topic}/"' not in html, topic
+              assert f'href="{topic}/"' in html, topic
+          PY
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:

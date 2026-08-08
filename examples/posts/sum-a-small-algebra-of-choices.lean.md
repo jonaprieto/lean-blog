@@ -7,7 +7,7 @@ tags: lean, tutorial, data types
 
 # Defining `Sum`
 
-This post introduces a tiny sum type. The [companion post on using `Sum`](../2026-8-2-using-sum-in-another-post/)
+This post introduces a tiny sum type. The [companion post on using `Sum`](2026-8-2-using-sum-in-another-post/)
 uses the definition in a different piece of writing, while the [`PostSource`](lean:LeanBlog.PostSource)
 reference demonstrates a link from English prose to a generated Lean declaration.
 
