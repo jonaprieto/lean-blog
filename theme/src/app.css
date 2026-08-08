@@ -52,6 +52,22 @@
     @apply bg-transparent p-0 text-inherit;
   }
 
+  .leanblog-prose .hl.lean.block {
+    @apply my-8 block overflow-x-auto rounded-box bg-neutral p-5 text-sm leading-7 text-neutral-content shadow-sm;
+    --verso-code-color: #e2e8f0;
+    --verso-code-keyword-color: #c084fc;
+    --verso-code-const-color: #67e8f9;
+    --verso-code-var-color: #f0abfc;
+  }
+
+  .leanblog-prose .hl.lean.block .literal {
+    color: #fbbf24;
+  }
+
+  .leanblog-prose .hl.lean.block .comment {
+    color: #94a3b8;
+  }
+
   .post-list {
     @apply m-0 grid list-none gap-6 p-0 lg:grid-cols-2;
   }
@@ -67,5 +83,22 @@
 
   .post-list .card-title {
     @apply whitespace-normal;
+  }
+
+  .post-list .post-summary {
+    max-height: 12rem;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .post-list .post-summary::after {
+    background: linear-gradient(to bottom, transparent, var(--color-base-100));
+    bottom: 0;
+    content: "";
+    height: 3rem;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
   }
 }

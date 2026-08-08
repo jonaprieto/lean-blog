@@ -2,6 +2,7 @@
 title: Linking across LeanBlog modules
 date: 2026-08-05
 authors: Jonathan Prieto-Cubides
+tags: links, lean
 ---
 
 Declaration links are useful when a post explains the framework itself. The source model from

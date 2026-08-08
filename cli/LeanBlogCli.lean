@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import LeanBlog
 import Lean.Data.Json
+import SubVerso.Compat
+import SubVerso.Highlighting.Code
 import VersoBlog
 
 /-!
@@ -32,10 +34,19 @@ private def starterPost : String := r#"---
 title: Your first LeanBlog post
 date: 2026-08-08
 authors: Your Name
+tags: lean, tutorial
 ---
 
 Write ordinary Markdown here. Link to declarations with standard Markdown syntax such as
 [`MyDeclaration`](lean:MyDeclaration).
+
+Lean fences are highlighted with Verso and SubVerso:
+
+```lean
+def answer : Nat := 42
+
+#eval answer
+```
 "#
 
 private def starterReadme : String := r#"# Your LeanBlog
@@ -304,8 +315,73 @@ private def loadPosts (sourcePath : String) : IO (Array LoadedPost) := do
   let paths ← sourceFiles sourcePath
   paths.mapM loadPost
 
-private def lowerPost (post : LoadedPost) (index : DeclarationIndex) : IO (Part Post) := do
-  match post.source.toPart index with
+private def markdownText (text : Array MD4Lean.AttrText) : String :=
+  text.foldl (init := "") fun result part =>
+    match part with
+    | .normal value | .entity value => result ++ value
+    | .nullchar => result
+
+private def leanCodeBlocks (posts : Array LoadedPost) : Array String := Id.run do
+  let mut blocks := #[]
+  for post in posts do
+    for block in post.source.document.blocks do
+      match block with
+      | .code _info lang _fence content =>
+        if markdownText lang == "lean" || markdownText lang == "lean4" then
+          blocks := blocks.push (String.join content.toList)
+      | _ => pure ()
+  blocks
+
+private def highlightLean (code : String) : IO (Option SubVerso.Highlighting.Highlighted) := do
+  try
+    let inputCtx := Parser.mkInputContext code "<leanblog-code>"
+    let environment ← Lean.mkEmptyEnvironment
+    let commandState : Lean.Elab.Command.State := {
+      env := environment
+      maxRecDepth := 100000
+    }
+    let initialState : Lean.Elab.Frontend.State := {
+      commandState
+      parserState := {}
+      cmdPos := 0
+    }
+    let (result, finalState) ←
+      (SubVerso.Compat.Frontend.processCommands Lean.mkNullNode).run
+        {inputCtx} |>.run initialState
+    let result := result.updateLeading code
+    let result := {result with items := result.items.map fun item => {item with messages := {}}}
+    let action : Lean.Elab.Command.CommandElabM SubVerso.Highlighting.Highlighted := do
+      Lean.Elab.Command.runTermElabM fun _ => do
+        withTheReader Core.Context (fun context => {context with fileMap := inputCtx.fileMap}) do
+          let highlighted ← SubVerso.Highlighting.highlightFrontendResult result
+          pure <| highlighted.foldl (· ++ ·) .empty
+    let commandContext : Lean.Elab.Command.Context := {
+      cmdPos := 0
+      fileName := inputCtx.fileName
+      fileMap := inputCtx.fileMap
+      snap? := none
+      cancelTk? := none
+    }
+    match ← EIO.toIO' (action.run commandContext |>.run finalState.commandState) with
+    | .ok (highlighted, _) => pure <| some highlighted
+    | .error _ => pure none
+  catch _ =>
+    pure none
+
+private structure HighlightedCode where
+  source : String
+  rendered : SubVerso.Highlighting.Highlighted
+
+private def highlightLeanCodes (posts : Array LoadedPost) : IO (Array HighlightedCode) := do
+  let mut highlighted := #[]
+  for source in leanCodeBlocks posts do
+    if let some rendered ← highlightLean source then
+      highlighted := highlighted.push {source, rendered}
+  pure highlighted
+
+private def lowerPost (post : LoadedPost) (index : DeclarationIndex)
+    (highlight? : String → Option SubVerso.Highlighting.Highlighted) : IO (Part Post) := do
+  match post.source.toPartWithHighlight index highlight? with
   | .ok contents => pure contents
   | .error error => throw <| IO.userError s!"{post.path}: {error}"
 
@@ -313,21 +389,25 @@ private def checkSource (sourcePath : String) (links : LinkConfig) : IO Unit := 
   let posts ← loadPosts sourcePath
   let index ← loadTargets links
   for post in posts do
-    let _ ← lowerPost post index
+    let _ ← lowerPost post index (fun _ => none)
     IO.println s!"checked {post.path} ({post.source.document.blocks.size} blocks)"
   IO.println s!"checked {posts.size} post(s)"
 
 private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit := do
   let posts ← loadPosts sourcePath
   let index ← loadTargets config.links
-  let contents ← posts.mapM (fun post => lowerPost post index)
+  let highlighted ← highlightLeanCodes posts
+  let highlight? := fun source =>
+    highlighted.find? (·.source == source) |>.map (·.rendered)
+  let contents ← posts.mapM (fun post => lowerPost post index highlight?)
   let css ← IO.FS.readFile config.css
   let home : Part Page := Verso.Doc.Part.mk #[.text "LeanBlog"] "LeanBlog" none
     #[.para #[.text "A calm home for Lean-aware writing."]] #[]
-  let blogPage : Part Page := Verso.Doc.Part.mk #[.text "Posts"] "Posts" none #[] #[]
   let blogPosts := contents.mapIdx fun index contents =>
     {id := Lean.Name.mkSimple s!"post{index}", contents}
-  let site : Site := .page `home home #[.blog "posts" `blog blogPage blogPosts]
+  -- A root blog is not registered by Verso's root-site traversal. An empty blog child keeps the
+  -- archive at `/` while using the normal directory-blog path that registers categories correctly.
+  let site : Site := .page `home home #[.blog "" `blog home blogPosts]
   let status ← blogMain (Theme.make css) site {} ["--output", config.output]
   if status != 0 then
     throw <| IO.userError s!"Verso failed to build {sourcePath}"

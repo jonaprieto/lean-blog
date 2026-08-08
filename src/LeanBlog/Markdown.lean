@@ -16,6 +16,7 @@ The first source format is intentionally small and explicit:
 title: A post
 date: 2026-08-07
 authors: Jonathan Prieto-Cubides
+tags: lean, tutorial
 ---
 
 The [`Sum`](lean:Sum) type has two constructors.
@@ -38,6 +39,8 @@ structure PostSource where
   date : Date
   /-- The authors shown in the post metadata. -/
   authors : List String := []
+  /-- Short labels shown with the post in the collection. -/
+  tags : List String := []
   /-- The parsed Markdown body. -/
   document : MD4Lean.Document
 deriving Repr
@@ -98,10 +101,12 @@ def parsePost (source : String) : Except String PostSource := do
   let date ← parseDate dateString
   let authorsString := field? fields "authors" |>.getD ""
   let authors := authorsString.splitOn "," |>.map (·.trimAscii.toString) |>.filter (!·.isEmpty)
+  let tagsString := field? fields "tags" |>.getD ""
+  let tags := tagsString.splitOn "," |>.map (·.trimAscii.toString) |>.filter (!·.isEmpty)
   let body := String.intercalate "\n" bodyLines
   let some document := MD4Lean.parse body (parserFlags := MD4Lean.MD_DIALECT_GITHUB)
     | .error "Markdown parser rejected the post body"
-  pure {title, date, authors, document}
+  pure {title, date, authors, tags, document}
 
 private def attrText (text : Array MD4Lean.AttrText) : Except String String := do
   let mut result := ""
@@ -159,12 +164,22 @@ mutual
 
 end
 
-private def lowerBlock (index : DeclarationIndex) : MD4Lean.Block → Except String (Block Page)
+private def lowerBlock (index : DeclarationIndex)
+    (highlight? : String → Option SubVerso.Highlighting.Highlighted) :
+    MD4Lean.Block → Except String (Block Page)
     | .p content => .para <$> lowerInlines index content
     | .header level content => do
       let title ← lowerInlines index content
       pure <| .other (.docstringSection (level - 1)) #[.para title]
-    | .code _info _lang _fence content => pure (.code (String.join content.toList))
+    | .code _info _lang _fence content =>
+      let code := String.join content.toList
+      match highlight? code with
+      | some highlighted =>
+        pure <| .other (.highlightedCode {
+          contextName := .anonymous
+          showProofStates := false
+        } highlighted) #[.code code]
+      | none => pure (.code code)
     | .blockquote _ => .error "Block quotes are not supported in .lean.md posts yet"
     | .ul _ _ _ => .error "Lists are not supported in .lean.md posts yet"
     | .ol _ _ _ _ => .error "Lists are not supported in .lean.md posts yet"
@@ -173,12 +188,24 @@ private def lowerBlock (index : DeclarationIndex) : MD4Lean.Block → Except Str
     | .table _ _ => .error "Tables are not supported in .lean.md posts yet"
 
 /-- Lower a parsed post to the Verso blog genre after resolving all `lean:` links. -/
-def PostSource.toPart (source : PostSource) (index : DeclarationIndex) :
+def PostSource.toPartWithHighlight
+    (source : PostSource) (index : DeclarationIndex)
+    (highlight? : String → Option SubVerso.Highlighting.Highlighted) :
     Except String (Verso.Doc.Part Post) := do
-  let content ← source.document.blocks.mapM (lowerBlock index)
+  let content ← source.document.blocks.mapM (lowerBlock index highlight?)
+  let categories := source.tags.map fun tag => {
+    name := tag
+    slug := slugifyTitle tag
+  }
   pure <| Part.mk #[.text source.title] source.title (some {
     date := source.date
     authors := source.authors
+    categories
   }) content #[]
+
+/-- Lower a parsed post without requiring a code-highlighting environment. -/
+def PostSource.toPart (source : PostSource) (index : DeclarationIndex) :
+    Except String (Verso.Doc.Part Post) :=
+  source.toPartWithHighlight index (fun _ => none)
 
 end LeanBlog

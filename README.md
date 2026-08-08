@@ -30,6 +30,7 @@ The first authoring format is intentionally small:
 title: Sum in a post
 date: 2026-08-07
 authors: Jonathan Prieto-Cubides
+tags: lean, tutorial
 ---
 
 The [`PostSource`](lean:LeanBlog.PostSource) type represents a parsed post.
@@ -72,12 +73,16 @@ lake exe leanblog build examples/posts
 do not already exist, so it will not overwrite writing in progress.
 
 The generated site is in `.lake/build/site`; open `.lake/build/site/index.html` after building the
-stylesheet with the commands above. The post archive is at `.lake/build/site/posts/index.html`, and
-the individual posts are nested below it. When `.lake/build/literate-html` exists, the build also
-copies the generated API documentation to `.lake/build/site/api`.
+stylesheet with the commands above. The homepage is the post archive, and individual posts are
+nested below it. When `.lake/build/literate-html` exists, the build also copies the generated API
+documentation to `.lake/build/site/api`.
 
 Directory mode walks nested folders and sorts `.lean.md` files by path. A single file remains useful
 for a fast edit-check-render loop.
+
+Front matter supports `title`, `date`, `authors`, and comma-separated `tags`. Fenced `lean` blocks
+are rendered with Verso/SubVerso syntax highlighting, while `lean:` links resolve to the copied
+declaration pages.
 
 ## GitHub Pages
 

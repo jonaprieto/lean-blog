@@ -2,6 +2,7 @@
 title: A LeanBlog post
 date: 2026-08-07
 authors: Your Name
+tags: getting started, lean
 ---
 
 This starter is a real `.lean.md` post: front matter becomes the archive metadata, and the body is
@@ -12,6 +13,14 @@ The important part is that links stay ordinary Markdown. This one resolves throu
 Verso cross-reference index and becomes a link to the declaration page:
 
 [`PostSource.toPart`](lean:LeanBlog.PostSource.toPart)
+
+Lean examples use a fenced `lean` block and receive Verso's syntax highlighting:
+
+```lean
+def greeting : String := "LeanBlog"
+
+#eval greeting
+```
 
 Build one file while writing, or point the same command at `examples/posts` to render the whole
 collection. A normal external link works too: [Verso](https://github.com/leanprover/verso).

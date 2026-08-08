@@ -20,11 +20,14 @@ def main : IO Unit := do
     "title: Sum in a post\n" ++
     "date: 2026-08-07\n" ++
     "authors: Jonathan Prieto-Cubides\n" ++
+    "tags: lean, tutorial\n" ++
     "---\n\n" ++
     "The [`Sum`](lean:Sum) type is useful.\n"
   let post ← match parsePost source with
     | .ok post => pure post
     | .error error => throw <| IO.userError error
+  unless post.tags == ["lean", "tutorial"] do
+    throw <| IO.userError "post tags parsing failed"
   let part ← match post.toPart index with
     | .ok part => pure part
     | .error error => throw <| IO.userError error

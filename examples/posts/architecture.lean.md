@@ -2,6 +2,7 @@
 title: How a LeanBlog post is built
 date: 2026-08-06
 authors: Jonathan Prieto-Cubides
+tags: architecture, lean
 ---
 
 A post travels through three small layers. [`PostSource`](lean:LeanBlog.PostSource) is the source
@@ -14,7 +15,7 @@ future frontend can reuse the same links without knowing anything about Markdown
 
 Here is the shape of a source file:
 
-```lean
+```text
 ---
 title: A post
 date: 2026-08-06
@@ -26,3 +27,11 @@ The [`Target`](lean:LeanBlog.Target) is a generated link.
 
 The theme stays at the edge. [`Theme.make`](lean:LeanBlog.Theme.make) receives the compiled CSS and
 hands Verso the page templates, so writing content does not require learning the HTML template API.
+
+The same post can include an ordinary Lean example:
+
+```lean
+def greeting : String := "LeanBlog"
+
+#eval greeting
+```
