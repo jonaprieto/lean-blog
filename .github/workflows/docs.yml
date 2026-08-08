@@ -74,6 +74,12 @@ jobs:
           grep -q 'href="2026-8-2-using-sum-in-another-post/"' .lake/build/pages/2026-8-3-sum-a-small-algebra-of-choices/index.html
           grep -q 'title="Declaration from `Sum, a small algebra of choices`"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'class="leanblog-related"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
+          grep -q 'class="site-header"' .lake/build/pages/index.html
+          grep -q 'class="post-list"' .lake/build/pages/index.html
+          grep -q 'class="post-title"' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
+          ! grep -q 'drawer lg:drawer-open' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
+          ! grep -q 'In this collection' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
+          ! grep -q 'A LeanBlog post</p>' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
           ! grep -R -q 'href="../2026-' .lake/build/pages --include='index.html'
           python3 - <<'PY'
           from pathlib import Path

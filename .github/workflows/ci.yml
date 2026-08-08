@@ -92,6 +92,12 @@ jobs:
           grep -q 'class="mermaid"' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
           grep -q 'mermaid@11' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
           grep -q 'data-theme-toggle' .lake/build/site/index.html
+          grep -q 'class="site-header"' .lake/build/site/index.html
+          grep -q 'class="post-list"' .lake/build/site/index.html
+          grep -q 'class="post-title"' .lake/build/site/2026-8-7-a-leanblog-post/index.html
+          ! grep -q 'drawer lg:drawer-open' .lake/build/site/2026-8-7-a-leanblog-post/index.html
+          ! grep -q 'In this collection' .lake/build/site/2026-8-7-a-leanblog-post/index.html
+          ! grep -q 'A LeanBlog post</p>' .lake/build/site/2026-8-7-a-leanblog-post/index.html
           grep -q 'href="2026-8-3-sum-a-small-algebra-of-choices/"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'href="2026-8-2-using-sum-in-another-post/"' .lake/build/site/2026-8-3-sum-a-small-algebra-of-choices/index.html
           ! grep -R -q 'href="../2026-' .lake/build/site --include='index.html'

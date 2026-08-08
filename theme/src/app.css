@@ -19,11 +19,117 @@
   }
 
   body {
-    @apply antialiased;
+    @apply antialiased font-sans;
+  }
+
+  a {
+    @apply transition-colors;
   }
 }
 
 @layer components {
+  .site-header {
+    @apply border-b border-base-300/80 bg-base-100;
+  }
+
+  .site-header-inner {
+    @apply mx-auto flex max-w-4xl flex-wrap items-center gap-x-7 gap-y-3 px-4 py-5
+      sm:px-6;
+  }
+
+  .site-brand {
+    @apply shrink-0 text-xl font-bold tracking-tight text-base-content no-underline;
+  }
+
+  .site-nav {
+    @apply flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 text-sm;
+  }
+
+  .site-link {
+    @apply text-base-content/65 no-underline hover:text-primary;
+  }
+
+  .site-link-strong {
+    @apply font-semibold text-base-content;
+  }
+
+  .site-topic-links {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-2;
+  }
+
+  .site-theme-toggle {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full
+      text-lg text-base-content/60 hover:bg-base-200 hover:text-base-content;
+  }
+
+  .site-main {
+    @apply bg-base-100;
+  }
+
+  .site-content {
+    @apply mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14;
+  }
+
+  .site-posts {
+    @apply mt-14;
+  }
+
+  .site-section-heading {
+    @apply mb-2 border-b border-base-300 pb-3;
+  }
+
+  .site-section-heading h2 {
+    @apply text-sm font-semibold uppercase tracking-[0.14em] text-base-content/60;
+  }
+
+  .site-footer {
+    @apply border-t border-base-300/80 bg-base-100;
+  }
+
+  .site-footer-inner {
+    @apply mx-auto max-w-4xl px-4 py-8 text-sm text-base-content/55 sm:px-6;
+  }
+
+  .page-content {
+    @apply max-w-3xl;
+  }
+
+  .page-title {
+    @apply mb-6 text-4xl font-bold tracking-tight text-base-content sm:text-5xl;
+  }
+
+  .page-kicker {
+    @apply mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary;
+  }
+
+  .category-header {
+    @apply mb-12 flex flex-wrap items-end justify-between gap-5;
+  }
+
+  .category-header .page-title {
+    @apply mb-0;
+  }
+
+  .site-back-link {
+    @apply text-sm font-semibold text-primary no-underline hover:text-primary/75;
+  }
+
+  .post-page {
+    @apply mx-auto max-w-3xl;
+  }
+
+  .post-header {
+    @apply mb-10 border-b border-base-300 pb-7;
+  }
+
+  .post-title {
+    @apply text-4xl font-bold tracking-tight text-base-content sm:text-5xl;
+  }
+
+  .post-meta {
+    @apply mt-4 flex flex-wrap items-center gap-2 text-sm text-base-content/60;
+  }
+
   .leanblog-prose {
     @apply max-w-3xl text-base leading-8 text-base-content/85;
   }
@@ -152,37 +258,41 @@
   }
 
   .post-list {
-    @apply m-0 grid list-none gap-6 p-0 lg:grid-cols-2;
+    @apply m-0 list-none divide-y divide-base-300 p-0;
   }
 
-  .post-list > li,
-  .post-list > li > a {
-    @apply h-full min-w-0;
+  .post-list-item {
+    @apply py-7 first:pt-6 last:pb-0;
   }
 
-  .post-list .card-body {
+  .post-entry {
     @apply min-w-0;
   }
 
-  .post-list .card-title {
-    @apply whitespace-normal;
+  .post-entry-meta {
+    @apply flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em]
+      text-base-content/50;
   }
 
-  .post-list .post-summary {
-    max-height: 12rem;
-    overflow: hidden;
-    position: relative;
+  .post-entry-title {
+    @apply mt-2 text-2xl font-bold tracking-tight text-base-content sm:text-[1.7rem];
   }
 
-  .post-list .post-summary::after {
-    background: linear-gradient(to bottom, transparent, var(--color-base-100));
-    bottom: 0;
-    content: "";
-    height: 3rem;
-    left: 0;
-    pointer-events: none;
-    position: absolute;
-    right: 0;
+  .post-entry-title a {
+    @apply text-base-content no-underline hover:text-primary;
+  }
+
+  .post-entry-author {
+    @apply mt-2 text-sm text-base-content/60;
+  }
+
+  .post-tags {
+    @apply mt-3 flex flex-wrap gap-2;
+  }
+
+  .post-tag {
+    @apply rounded-full border border-base-300 px-2.5 py-0.5 text-xs text-base-content/65
+      no-underline hover:border-primary/50 hover:text-primary;
   }
 
   .leanblog-related {
@@ -198,12 +308,16 @@
   }
 
   .leanblog-related-card {
-    @apply card border border-base-300 bg-base-200/55 no-underline transition
-      hover:-translate-y-0.5 hover:border-primary/45 hover:bg-base-200 hover:shadow-sm;
+    @apply block border-b border-base-300 pb-4 no-underline last:border-b-0
+      hover:text-primary;
+  }
+
+  .leanblog-related-card .card-body {
+    @apply p-0;
   }
 
   .leanblog-related-card h3 {
-    @apply text-base font-bold text-base-content;
+    @apply text-base font-semibold text-base-content;
   }
 
   .leanblog-related-card p {
