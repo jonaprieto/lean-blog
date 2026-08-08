@@ -6,15 +6,12 @@
 
 LeanBlog is a Lean-aware publishing framework built on top of Verso. It is intended to make blogs,
 documentation, module catalogues, and tutorials pleasant to author while preserving links from
-Lean names to their generated HTML definitions.
-
-The current repository is the foundation scaffold. It does not yet parse `.lean.md` files or
-generate a site; the first public seam is the shared declaration index that will drive both prose
-references and highlighted Lean code.
+Lean names to their generated HTML definitions. The first source slice parses `.lean.md` posts,
+resolves explicit `lean:` links, and lowers them into Verso blog values.
 
 ## What it provides
 
-The current foundation represents declaration destinations with a name-indexed map:
+Declaration destinations use a name-indexed map:
 
 ```lean
 import LeanBlog
@@ -25,8 +22,21 @@ open LeanBlog
 -- "/api/Sum.html#decl-Sum"
 ```
 
-Planned authoring syntax includes explicit references such as
-``[`Sum`](lean:Sum)`` and ``[`List.map`](lean:List:map)``.
+The first authoring format is intentionally small:
+
+```markdown
+---
+title: Sum in a post
+date: 2026-08-07
+authors: Jonathan Prieto-Cubides
+---
+
+The [`Sum`](lean:Sum) type has two constructors.
+```
+
+`lean:` links must resolve through a `DeclarationIndex`; an unresolved declaration is a build error.
+See [the starter post](examples/posts/starter.lean.md). Site generation and the CLI are the next
+layer, while the visual collection prototype is already available.
 
 ## Quick start
 
@@ -45,6 +55,10 @@ npm run build:css --prefix theme
 ```
 
 Then open `examples/collection/index.html` in a browser.
+
+The current lowering slice covers paragraphs, headings, fenced code, inline emphasis, math,
+images, ordinary links, and declaration links. Lists, tables, block quotes, and raw HTML are
+rejected explicitly until their HTML semantics are defined for the blog theme.
 
 ## Build
 

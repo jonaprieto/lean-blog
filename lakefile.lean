@@ -15,7 +15,7 @@ require verso from git
 @[default_target]
 lean_lib «LeanBlog» where
   srcDir := "src"
-  globs := #[.one `LeanBlog]
+  globs := #[.one `LeanBlog, .one `LeanBlog.Links, .one `LeanBlog.Markdown]
 
 lean_lib «LeanBlog.Properties» where
   srcDir := "src"
