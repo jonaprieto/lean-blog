@@ -12,6 +12,11 @@ package «leanblog» where
 require verso from git
   "https://github.com/leanprover/verso" @ "v4.32.0"
 
+-- The CLI uses Argus for typed options, help, completions, and terminal diagnostics. Keep this
+-- at the application boundary so the Markdown and theme libraries remain pure.
+require argus from git
+  "https://github.com/jonaprieto/lean-argus.git" @ "v0.4.8"
+
 @[default_target]
 lean_lib «LeanBlog» where
   srcDir := "src"

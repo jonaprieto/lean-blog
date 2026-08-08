@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import LeanBlog
 import Lean.Data.Json
+import Argus
+import Argus.Term
 import SubVerso.Compat
 import SubVerso.Highlighting.Code
 import VersoBlog
@@ -18,17 +20,11 @@ an override for declarations documented elsewhere.
 namespace LeanBlog.Cli
 
 open Lean
+open Argus
+open TermColor
+open TermColor.Diagnostics
 open Verso Doc
 open Verso.Genre.Blog
-
-private def usage : String := r#"Usage:
-  leanblog init [<directory>]
-  leanblog check <source> [--targets <targets.tsv>] [--xref <xref.json>]
-    [--docs-root <path>]
-  leanblog build <source> [--targets <targets.tsv>] [--xref <xref.json>]
-    [--docs-root <path>] [--docs-directory <path>]
-    [--output <dir>] [--css <site.css>]
-"#
 
 private def starterPost : String := r#"---
 title: Your first LeanBlog post
@@ -77,73 +73,57 @@ structure BuildConfig where
   css : String := "theme/dist/site.css"
   docsDirectory : String := "api"
 
-inductive Command where
-  | init (directory : String)
-  | check (source : String) (links : LinkConfig)
-  | build (source : String) (config : BuildConfig)
+argus_opts InitOptions where
+  directory : Option String := Spec.opt (Spec.arg "DIRECTORY" "Blog directory" Param.path)
 
-private def parseLinkOptions : List String → LinkConfig → Except String LinkConfig
-  | [], config => .ok config
-  | "--targets" :: path :: rest, config =>
-    if config.targets.isSome then
-      .error "--targets may only be supplied once"
-    else
-      parseLinkOptions rest {config with targets := some path}
-  | "--targets" :: [], _ => .error "--targets expects a file path"
-  | "--xref" :: path :: rest, config =>
-    if config.xref.isSome then
-      .error "--xref may only be supplied once"
-    else
-      parseLinkOptions rest {config with xref := some path}
-  | "--xref" :: [], _ => .error "--xref expects a file path"
-  | "--docs-root" :: path :: rest, config =>
-    parseLinkOptions rest {config with docsRoot := path}
-  | "--docs-root" :: [], _ => .error "--docs-root expects a URL path"
-  | option :: _, _ => .error s!"Unknown option '{option}'"
+private def targetsSpec :=
+  Spec.opt (Spec.flag "targets" none "Declaration target registry (TSV)" Param.path)
 
-private def parseBuildOptions : List String → BuildConfig → Except String BuildConfig
-  | [], config => .ok config
-  | "--targets" :: path :: rest, config =>
-    if config.links.targets.isSome then
-      .error "--targets may only be supplied once"
-    else
-      parseBuildOptions rest {config with links := {config.links with targets := some path}}
-  | "--targets" :: [], _ => .error "--targets expects a file path"
-  | "--xref" :: path :: rest, config =>
-    if config.links.xref.isSome then
-      .error "--xref may only be supplied once"
-    else
-      parseBuildOptions rest {config with links := {config.links with xref := some path}}
-  | "--xref" :: [], _ => .error "--xref expects a file path"
-  | "--docs-root" :: path :: rest, config =>
-    parseBuildOptions rest {config with links := {config.links with docsRoot := path}}
-  | "--docs-root" :: [], _ => .error "--docs-root expects a URL path"
-  | "--output" :: path :: rest, config =>
-    parseBuildOptions rest {config with output := path}
-  | "--output" :: [], _ => .error "--output expects a directory path"
-  | "--css" :: path :: rest, config =>
-    parseBuildOptions rest {config with css := path}
-  | "--css" :: [], _ => .error "--css expects a stylesheet path"
-  | "--docs-directory" :: path :: rest, config =>
-    parseBuildOptions rest {config with docsDirectory := path}
-  | "--docs-directory" :: [], _ => .error "--docs-directory expects a directory path"
-  | option :: _, _ => .error s!"Unknown option '{option}'"
+private def xrefSpec :=
+  Spec.opt (Spec.flag "xref" none "Verso cross-reference index" Param.path)
 
-private def parseCommand : List String → Except String Command
-  | ["--help"] | ["-h"] => .error usage
-  | ["init"] => .ok <| Command.init "."
-  | ["init", directory] => .ok <| Command.init directory
-  | "init" :: _ => .error "init accepts at most one directory"
-  | "check" :: source :: rest => do
-    pure <| Command.check source (← parseLinkOptions rest {})
-  | "check" :: [] => .error "check expects a .md source path or posts directory"
-  | "build" :: source :: rest =>
-    do
-      let config ← parseBuildOptions rest {}
-      pure <| Command.build source config
-  | "build" :: [] => .error "build expects a .md source path or posts directory"
-  | [] => .error usage
-  | command :: _ => .error s!"Unknown command '{command}'\n\n{usage}"
+private def docsRootSpec :=
+  Spec.map (·.getD "/api")
+    (Spec.opt (Spec.flag "docs-root" none "URL path for generated API docs" Param.str))
+
+argus_opts CheckOptions where
+  source : String := Spec.arg "SOURCE" "Markdown file or posts directory" Param.path;
+  targets : Option String := targetsSpec;
+  xref : Option String := xrefSpec;
+  docsRoot : String := docsRootSpec
+
+argus_opts BuildOptions where
+  source : String := Spec.arg "SOURCE" "Markdown file or posts directory" Param.path;
+  targets : Option String := targetsSpec;
+  xref : Option String := xrefSpec;
+  docsRoot : String := docsRootSpec;
+  docsDirectory : String := Spec.map (·.getD "api")
+    (Spec.opt (Spec.flag "docs-directory" none "Generated API docs directory" Param.path));
+  output : String := Spec.map (·.getD ".lake/build/site")
+    (Spec.opt (Spec.flag "output" none "Generated site directory" Param.path));
+  css : String := Spec.map (·.getD "theme/dist/site.css")
+    (Spec.opt (Spec.flag "css" none "Compiled site stylesheet" Param.path))
+
+inductive Action where
+  | init (options : InitOptions)
+  | check (options : CheckOptions)
+  | build (options : BuildOptions)
+
+private def checkAction (options : CheckOptions) : Action := .check options
+
+private def buildAction (options : BuildOptions) : Action := .build options
+
+private def leanblogCommand : Argus.Command Action :=
+  Argus.group "leanblog"
+    [ Argus.cmd "init" (Spec.map Action.init InitOptions.spec)
+        (description := "Create a starter blog in a directory")
+    , Argus.cmd "check" (Spec.map checkAction CheckOptions.spec)
+        (description := "Validate Markdown posts and declaration links")
+    , Argus.cmd "build" (Spec.map buildAction BuildOptions.spec)
+        (description := "Render the blog and copy generated API docs")
+    ]
+    (version := some "0.1.0")
+    (description := "A Lean-aware Markdown blog generator.")
 
 private def fromExcept {α : Type} : Except String α → IO α
   | .ok value => pure value
@@ -417,24 +397,41 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
     IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.docsDirectory}"
   IO.println s!"built {config.output}"
 
+private def checkLinks (options : CheckOptions) : LinkConfig :=
+  { targets := options.targets, xref := options.xref, docsRoot := options.docsRoot }
+
+private def buildConfig (options : BuildOptions) : BuildConfig :=
+  { links := { targets := options.targets, xref := options.xref, docsRoot := options.docsRoot }
+    output := options.output
+    css := options.css
+    docsDirectory := options.docsDirectory }
+
+private def runAction : Action → IO UInt32
+  | .init options => do
+    initBlog (options.directory.getD ".")
+    pure 0
+  | .check options => do
+    checkSource options.source (checkLinks options)
+    pure 0
+  | .build options => do
+    buildSource options.source (buildConfig options)
+    pure 0
+
+private def reportRuntimeError (error : IO.Error) : IO UInt32 := do
+  let stderr ← IO.getStderr
+  let target ← targetWithTty .auto (← stderr.isTty)
+  let source := Source.named "leanblog" error.toString
+  let diagnostic := (Diagnostic.error "command failed").withLabel
+    (Label.primary (Span.point 0 0))
+  stderr.putStr (Text.render target (TermColor.Diagnostics.render #[source] diagnostic))
+  stderr.putStr "\n"
+  pure 1
+
 def main (args : List String) : IO UInt32 := do
   try
-    match parseCommand args with
-    | .error error =>
-      IO.eprintln error
-      if error == usage then pure 0 else pure 1
-    | .ok (.init directory) =>
-      initBlog directory
-      pure 0
-    | .ok (.check source links) =>
-      checkSource source links
-      pure 0
-    | .ok (.build source config) =>
-      buildSource source config
-      pure 0
+    Argus.Term.main leanblogCommand args runAction
   catch error =>
-    IO.eprintln s!"error: {error}"
-    pure 1
+    reportRuntimeError error
 
 end LeanBlog.Cli
 
