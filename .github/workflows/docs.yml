@@ -1,0 +1,86 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Configure ecosystem dependency access
+        env:
+          ECOSYSTEM_READ_TOKEN: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
+        run: |
+          test -n "$ECOSYSTEM_READ_TOKEN"
+          git config --global url."https://x-access-token:${ECOSYSTEM_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
+      - name: Cache elan toolchain
+        uses: actions/cache@v6
+        with:
+          path: ~/.elan
+          key: elan-pages-${{ runner.os }}-${{ hashFiles('lean-toolchain') }}
+      - name: Cache Lake build
+        uses: actions/cache@v6
+        with:
+          path: .lake
+          key: lake-pages-${{ runner.os }}-${{ hashFiles('lake-manifest.json', 'lakefile.lean', 'lean-toolchain') }}
+          restore-keys: lake-pages-${{ runner.os }}-
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - uses: leanprover/lean-action@v1
+        with:
+          build-args: "LeanBlog LeanBlog.Properties tests readme demo leanblog"
+      - name: Generate Verso cross-reference index
+        run: lake build :literateHtml
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "lts/*"
+          cache: npm
+          cache-dependency-path: theme/package-lock.json
+      - name: Build Tailwind and daisyUI theme
+        run: npm ci --prefix theme && npm run build:css --prefix theme
+      - name: Build Pages site
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: |
+          docs_root="${PAGES_BASE_PATH}/api"
+          ./.lake/build/bin/leanblog check examples/posts
+          ./.lake/build/bin/leanblog build examples/posts \
+            --output .lake/build/pages \
+            --docs-root "$docs_root" \
+            --docs-directory api
+          test -s .lake/build/pages/index.html
+          test -s .lake/build/pages/api/LeanBlog/Markdown/index.html
+          grep -q "$docs_root/LeanBlog/Markdown/#LeanBlog___PostSource" .lake/build/pages/posts/*/index.html
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .lake/build/pages
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

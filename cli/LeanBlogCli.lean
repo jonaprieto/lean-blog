@@ -24,7 +24,7 @@ private def usage : String := r#"Usage:
   leanblog check <source> [--targets <targets.tsv>] [--xref <xref.json>]
     [--docs-root <path>]
   leanblog build <source> [--targets <targets.tsv>] [--xref <xref.json>]
-    [--docs-root <path>]
+    [--docs-root <path>] [--docs-directory <path>]
     [--output <dir>] [--css <site.css>]
 "#
 
@@ -63,6 +63,7 @@ structure BuildConfig where
   links : LinkConfig := {}
   output : String := ".lake/build/site"
   css : String := "theme/dist/site.css"
+  docsDirectory : String := "api"
 
 inductive Command where
   | init (directory : String)
@@ -111,6 +112,9 @@ private def parseBuildOptions : List String → BuildConfig → Except String Bu
   | "--css" :: path :: rest, config =>
     parseBuildOptions rest {config with css := path}
   | "--css" :: [], _ => .error "--css expects a stylesheet path"
+  | "--docs-directory" :: path :: rest, config =>
+    parseBuildOptions rest {config with docsDirectory := path}
+  | "--docs-directory" :: [], _ => .error "--docs-directory expects a directory path"
   | option :: _, _ => .error s!"Unknown option '{option}'"
 
 private def parseCommand : List String → Except String Command
@@ -178,7 +182,7 @@ private def copyGeneratedDocs (config : BuildConfig) : IO Bool := do
   if !useLocalDocs || !(← xref.pathExists) then
     pure false
   else
-    let destination := joinUrlPath ⟨config.output⟩ config.links.docsRoot
+    let destination := joinUrlPath ⟨config.output⟩ config.docsDirectory
     copyDirectory defaultDocsDirectory destination
     pure true
 
@@ -328,7 +332,7 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
   if status != 0 then
     throw <| IO.userError s!"Verso failed to build {sourcePath}"
   if ← copyGeneratedDocs config then
-    IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.links.docsRoot}"
+    IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.docsDirectory}"
   IO.println s!"built {config.output}"
 
 def main (args : List String) : IO UInt32 := do
