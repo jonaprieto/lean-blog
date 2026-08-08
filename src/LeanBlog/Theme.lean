@@ -105,8 +105,50 @@ private def themeAssets : Html :=
       button.setAttribute('aria-label', dark ? 'Use light theme' : 'Use dark theme');
     });
   };
+  const buildTableOfContents = () => {
+    document.querySelectorAll('[data-post-toc]').forEach((toc) => {
+      const article = toc.closest('.post-page');
+      const nav = toc.querySelector('[data-post-toc-nav]');
+      const headings = article
+        ? Array.from(article.querySelectorAll(
+            '.leanblog-prose h1, .leanblog-prose h2, .leanblog-prose h3'))
+        : [];
+      if (!nav || headings.length < 2) {
+        toc.hidden = true;
+        return;
+      }
+      const usedIds = new Set();
+      const slugify = (text) => text.toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const list = document.createElement('ul');
+      headings.forEach((heading, index) => {
+        const baseId = heading.id || slugify(heading.textContent || '') || `section-${index + 1}`;
+        let id = baseId;
+        let suffix = 2;
+        while (
+          usedIds.has(id) ||
+          (document.getElementById(id) && document.getElementById(id) !== heading)
+        ) {
+          id = `${baseId}-${suffix}`;
+          suffix += 1;
+        }
+        usedIds.add(id);
+        heading.id = id;
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.className = `post-toc-link post-toc-level-${heading.tagName.slice(1)}`;
+        link.href = `#${id}`;
+        link.textContent = heading.textContent || id;
+        item.append(link);
+        list.append(item);
+      });
+      nav.replaceChildren(list);
+      toc.hidden = false;
+    });
+  };
   document.addEventListener('DOMContentLoaded', () => {
     update();
+    buildTableOfContents();
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
       button.addEventListener('click', () => {
         root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -227,6 +269,10 @@ private def post : Template := do
             }}
           }}
       </header>
+      <details class="post-toc" data-post-toc hidden>
+        <summary>"On this page"</summary>
+        <nav data-post-toc-nav aria-label="Table of contents"></nav>
+      </details>
       <div class="leanblog-prose">{{← param "content"}}</div>
       <div id="leanblog-related-posts"></div>
     </article>
@@ -240,30 +286,23 @@ private def archiveEntry : Template := do
   pure #[{{
     <li class="post-list-item">
       <article class="post-entry">
+        <div class="post-entry-row">
           {{ match post.contents.metadata with
             | none => Html.empty
             | some md => {{
-              <div class="post-entry-meta">
-                <time datetime={{md.date.toIso8601String}}>{{displayDate md.date}}</time>
-                <span aria-hidden="true">"·"</span>
-                <span>{{toString (readingTime post)}} " min read"</span>
-              </div>
+              <time class="post-entry-date" datetime={{md.date.toIso8601String}}>
+                {{displayDate md.date}}</time>
             }}
           }}
           <h2 class="post-entry-title"><a href={{target ++ "/"}}>
             {{post.contents.titleString}}</a></h2>
           {{ match post.contents.metadata with
             | none => Html.empty
-            | some md => {{
-              <div class="post-entry-author">
-                <span>{{
-                  (md : Post.PartMetadata).authors.map
-                    ({{<span>{{Html.text true ·}}</span>}}) |>.toArray
-                }}</span>
-              </div>
-              {{tags path md}}
+            | some _ => {{
+              <span class="post-entry-details">{{toString (readingTime post)}} " min read"</span>
             }}
           }}
+        </div>
       </article>
     </li>
   }}]

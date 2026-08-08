@@ -130,6 +130,35 @@
     @apply mt-4 flex flex-wrap items-center gap-2 text-sm text-base-content/60;
   }
 
+  .post-toc {
+    @apply my-8 border-y border-base-300 py-3;
+  }
+
+  .post-toc summary {
+    @apply cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.14em]
+      text-base-content/60;
+  }
+
+  .post-toc summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .post-toc nav ul {
+    @apply mt-3 grid gap-1 sm:grid-cols-2;
+  }
+
+  .post-toc-link {
+    @apply block text-sm text-base-content/70 no-underline hover:text-primary;
+  }
+
+  .post-toc-level-2 {
+    @apply pl-3;
+  }
+
+  .post-toc-level-3 {
+    @apply pl-6 text-xs;
+  }
+
   .leanblog-prose {
     @apply max-w-3xl text-base leading-8 text-base-content/85;
   }
@@ -262,28 +291,31 @@
   }
 
   .post-list-item {
-    @apply py-7 first:pt-6 last:pb-0;
+    @apply py-4 first:pt-4 last:pb-0;
   }
 
   .post-entry {
     @apply min-w-0;
   }
 
-  .post-entry-meta {
-    @apply flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em]
-      text-base-content/50;
+  .post-entry-row {
+    @apply grid items-baseline gap-x-4 gap-y-1 sm:grid-cols-[9rem_minmax(0,1fr)_auto];
+  }
+
+  .post-entry-date {
+    @apply text-xs font-semibold uppercase tracking-[0.1em] text-base-content/50;
   }
 
   .post-entry-title {
-    @apply mt-2 text-2xl font-bold tracking-tight text-base-content sm:text-[1.7rem];
+    @apply min-w-0 text-lg font-semibold tracking-tight text-base-content;
   }
 
   .post-entry-title a {
     @apply text-base-content no-underline hover:text-primary;
   }
 
-  .post-entry-author {
-    @apply mt-2 text-sm text-base-content/60;
+  .post-entry-details {
+    @apply text-xs text-base-content/55;
   }
 
   .post-tags {
@@ -304,23 +336,23 @@
   }
 
   .leanblog-related-grid {
-    @apply mt-4 grid gap-4 sm:grid-cols-2;
+    @apply mt-4 grid gap-0;
   }
 
   .leanblog-related-card {
-    @apply block border-b border-base-300 pb-4 no-underline last:border-b-0
+    @apply block border-b border-base-300 px-0 py-3 no-underline last:border-b-0
       hover:text-primary;
   }
 
   .leanblog-related-card .card-body {
-    @apply p-0;
+    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 p-0;
   }
 
   .leanblog-related-card h3 {
-    @apply text-base font-semibold text-base-content;
+    @apply min-w-0 text-sm font-semibold text-base-content;
   }
 
   .leanblog-related-card p {
-    @apply mt-2 text-xs leading-5 text-base-content/60;
+    @apply mt-0 shrink-0 text-xs leading-5 text-base-content/60;
   }
 }
