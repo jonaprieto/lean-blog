@@ -96,7 +96,8 @@ def parsePost (source : String) : Except String PostSource := do
   let title ← requireField fields "title"
   let dateString ← requireField fields "date"
   let date ← parseDate dateString
-  let authors := field? fields "authors" |>.getD "" |>.splitOn "," |>.map (·.trimAscii.toString) |>.filter (!·.isEmpty)
+  let authorsString := field? fields "authors" |>.getD ""
+  let authors := authorsString.splitOn "," |>.map (·.trimAscii.toString) |>.filter (!·.isEmpty)
   let body := String.intercalate "\n" bodyLines
   let some document := MD4Lean.parse body (parserFlags := MD4Lean.MD_DIALECT_GITHUB)
     | .error "Markdown parser rejected the post body"
@@ -148,7 +149,8 @@ mutual
       .link <$> lowerInlines index content <*> pure url
     | .a href _title _isAuto content => do
       let href ← attrText href
-      let url ← if "lean:".isPrefixOf href then (linkedTarget index href).map (·.href) else pure href
+      let url ←
+        if "lean:".isPrefixOf href then (linkedTarget index href).map (·.href) else pure href
       .link <$> lowerInlines index content <*> pure url
   private def lowerInlines (index : DeclarationIndex) (content : Array MD4Lean.Text) :
       Except String (Array (Inline Page)) :=
