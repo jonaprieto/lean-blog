@@ -51,10 +51,9 @@ private def tags (path : String) (metadata : Post.PartMetadata) : Html :=
   if metadata.categories.isEmpty then
     Html.empty
   else
-    {{<div class="flex flex-wrap gap-2">
+    {{<div class="post-tags">
       {{metadata.categories.toArray.map fun tag =>
-        {{<a href={{categoryHref path tag}} class="badge badge-outline transition
-          hover:badge-primary">{{tag.name}}</a>}}}}
+        {{<a href={{categoryHref path tag}} class="post-tag">{{tag.name}}</a>}}}}
     </div>}}
 
 private def categoryNav (categories : Post.Categories) : TemplateM Html := do
@@ -64,12 +63,9 @@ private def categoryNav (categories : Post.Categories) : TemplateM Html := do
     let root := (← currentPath).toList.take 1
     let entries ← categories.categories.toList.mapM fun (_, category) => do
       let href ← relative (root ++ [category.slug])
-      pure {{<li><a href={{dirPathToString href (trailing := true)}}>{{category.name}}</a></li>}}
-    pure {{<div class="mt-8 border-t border-base-300 pt-6">
-      <p class="mb-3 text-xs font-bold uppercase tracking-[0.16em]
-        text-base-content/50">"Topics"</p>
-      <ul class="menu menu-sm -mx-3 rounded-box p-0">{{entries.toArray}}</ul>
-    </div>}}
+      pure {{<a class="site-link" href={{dirPathToString href (trailing := true)}}>
+        {{category.name}}</a>}}
+    pure {{<span class="site-topic-links">{{entries.toArray}}</span>}}
 
 private def mermaidAssets : Html :=
   let script := "import mermaid from \"https://cdn.jsdelivr.net/npm/mermaid@11/" ++
@@ -125,11 +121,9 @@ private def themeAssets : Html :=
   {{<script>{{Html.text false script}}</script>}}
 
 private def footer : Html := {{
-  <footer class="border-t border-base-300 bg-base-100">
-    <div class="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-8 text-sm
-      text-base-content/55 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-      <span class="font-semibold text-base-content">"LeanBlog"</span>
-      <span>"A calm home for Lean-aware writing."</span>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span>"Built with LeanBlog, Verso, Tailwind, and daisyUI."</span>
     </div>
   </footer>
 }}
@@ -155,7 +149,7 @@ private def header : TemplateM Html := do
   pure <| header ++ themeAssets ++ mermaidAssets
 
 private def primary : Template := do
-  let posts := (← param? "posts").getD .empty
+  let posts := (← param? "posts")
   let categories := (← param? (α := Post.Categories) "categories").getD (.mk #[])
   let topics ← categoryNav categories
   pure {{
@@ -166,59 +160,37 @@ private def primary : Template := do
         <title>{{← param (α := String) "title"}}</title>
         {{← header}}
       </head>
-      <body class="min-h-screen bg-base-200 text-base-content">
-        <div class="drawer lg:drawer-open">
-          <input id="leanblog-drawer" type="checkbox" class="drawer-toggle"/>
-          <div class="drawer-content flex min-h-screen flex-col">
-            <header class="navbar sticky top-0 z-30 border-b border-base-300 bg-base-100/90 px-4
-              backdrop-blur sm:px-6 lg:px-8">
-              <div class="flex-none lg:hidden">
-                <label for="leanblog-drawer" class="btn btn-square btn-ghost"
-                  aria-label="Open navigation">"☰"</label>
-              </div>
-              <div class="flex-1">
-                <a class="text-lg font-black tracking-tight" href=".">"LeanBlog"</a>
-                <span class="ml-3 hidden text-sm text-base-content/55 sm:inline">
-                  "Lean-aware publishing"</span>
-              </div>
-              <div class="flex-none">
-                <button type="button" class="btn btn-circle btn-ghost" data-theme-toggle
-                  aria-label="Toggle color theme">
-                  <span data-theme-icon aria-hidden="true">"☾"</span>
-                </button>
-              </div>
-            </header>
-            <main class="w-full flex-1">
-              <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-                {{← param "content"}}
-                {{posts}}
-              </div>
-            </main>
-            {{footer}}
-          </div>
-          <div class="drawer-side z-40">
-            <label for="leanblog-drawer" class="drawer-overlay"
-              aria-label="Close navigation"></label>
-            <aside class="flex min-h-full w-72 flex-col border-r border-base-300 bg-base-100 p-6">
-              <div>
-                <p class="text-xs font-bold uppercase tracking-[0.2em] text-primary">"LeanBlog"</p>
-                <p class="mt-2 text-sm leading-6 text-base-content/60">
-                  "Notes, explanations, and Lean-aware documentation."</p>
-              </div>
-              <nav class="mt-8">
-                <p class="mb-3 text-xs font-bold uppercase tracking-[0.16em]
-                  text-base-content/50">"Explore"</p>
-                <ul class="menu menu-sm -mx-3 rounded-box p-0">
-                  <li><a class="font-semibold" href=".">"All posts"</a></li>
-                </ul>
+      <body class="site-body min-h-screen bg-base-100 text-base-content">
+        <div class="site-shell flex min-h-screen flex-col">
+          <header class="site-header">
+            <div class="site-header-inner">
+              <a class="site-brand" href=".">"LeanBlog"</a>
+              <nav class="site-nav" aria-label="Primary">
+                <a class="site-link site-link-strong" href=".">"All posts"</a>
                 {{topics}}
               </nav>
-              <div class="mt-auto border-t border-base-300 pt-6 text-xs leading-5
-                text-base-content/50">
-                "Built with LeanBlog, Verso, Tailwind, and daisyUI."
-              </div>
-            </aside>
-          </div>
+              <button type="button" class="site-theme-toggle" data-theme-toggle
+                aria-label="Toggle color theme">
+                <span data-theme-icon aria-hidden="true">"☾"</span>
+              </button>
+            </div>
+          </header>
+          <main class="site-main w-full flex-1">
+            <div class="site-content">
+              {{← param "content"}}
+              {{match posts with
+                | none => Html.empty
+                | some posts => {{
+                  <section class="site-posts" aria-labelledby="recent-posts-title">
+                    <div class="site-section-heading">
+                      <h2 id="recent-posts-title">"Recent posts"</h2>
+                    </div>
+                    {{posts}}
+                  </section>
+                }}}}
+            </div>
+          </main>
+          {{footer}}
         </div>
       </body>
     </html>
@@ -226,8 +198,8 @@ private def primary : Template := do
 
 private def page : Template := do
   pure {{
-    <article class="mx-auto max-w-4xl rounded-box bg-base-100 p-6 shadow-sm sm:p-10 lg:p-12">
-      <h1 class="mb-8 text-4xl font-black tracking-tight sm:text-5xl">{{← param "title"}}</h1>
+    <article class="page-content">
+      <h1 class="page-title">{{← param "title"}}</h1>
       <div class="leanblog-prose">{{← param "content"}}</div>
     </article>
   }}
@@ -235,70 +207,55 @@ private def page : Template := do
 private def post : Template := do
   let path := (← param? (α := String) "path").getD ""
   pure {{
-    <div class="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start">
-      <article class="rounded-box bg-base-100 p-6 shadow-sm sm:p-10 lg:p-12">
-        <div class="mb-10 border-b border-base-300 pb-8">
-          <p class="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-primary">
-            "A LeanBlog post"</p>
-          <h1 class="mb-4 text-4xl font-black tracking-tight sm:text-5xl">{{← param "title"}}</h1>
+    <article class="post-page">
+      <header class="post-header">
+          <h1 class="post-title">{{← param "title"}}</h1>
           {{ match (← param? "metadata") with
             | none => Html.empty
             | some md => {{
-              <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/60">
-                <span>{{
+              <div class="post-meta">
+                <span>"By "{{
                   (md : Post.PartMetadata).authors.map
                     ({{<span>{{Html.text true ·}}</span>}}) |>.toArray
                 }}</span>
                 <span aria-hidden="true">"·"</span>
-                <time datetime={{md.date.toIso8601String}}>{{displayDate md.date}}</time>
+                <time datetime={{md.date.toIso8601String}}>
+                  "Published "{{displayDate md.date}}
+                </time>
               </div>
               {{tags path md}}
             }}
           }}
-        </div>
-        <div class="leanblog-prose">{{← param "content"}}</div>
-        <div id="leanblog-related-posts"></div>
-      </article>
-      <aside class="hidden lg:block">
-        <div class="sticky top-24 rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.16em]
-            text-base-content/50">"In this collection"</p>
-          <a class="btn btn-primary btn-sm mt-4 w-full" href=".">"Browse all posts"</a>
-          <p class="mt-4 text-xs leading-5 text-base-content/55">
-            "Lean-aware writing with linked declarations, diagrams, and examples."</p>
-        </div>
-      </aside>
-    </div>
+      </header>
+      <div class="leanblog-prose">{{← param "content"}}</div>
+      <div id="leanblog-related-posts"></div>
+    </article>
   }}
 
 private def archiveEntry : Template := do
   let post : BlogPost ← param "post"
-  let summary ← param "summary"
   let path := (← param? (α := String) "path").getD ""
   let name ← post.postName'
   let target := if path.isEmpty then name else path ++ "/" ++ name
   pure #[{{
-    <li class="h-full">
-      <article class="card h-full border border-base-300 bg-base-100 shadow-sm transition
-         hover:-translate-y-0.5 hover:shadow-md">
-        <div class="card-body">
+    <li class="post-list-item">
+      <article class="post-entry">
           {{ match post.contents.metadata with
             | none => Html.empty
             | some md => {{
-              <div class="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase
-                tracking-[0.14em] text-base-content/55">
+              <div class="post-entry-meta">
                 <time datetime={{md.date.toIso8601String}}>{{displayDate md.date}}</time>
                 <span aria-hidden="true">"·"</span>
                 <span>{{toString (readingTime post)}} " min read"</span>
               </div>
             }}
           }}
-          <h2 class="card-title text-2xl"><a class="link-hover" href={{target ++ "/"}}>
+          <h2 class="post-entry-title"><a href={{target ++ "/"}}>
             {{post.contents.titleString}}</a></h2>
           {{ match post.contents.metadata with
             | none => Html.empty
             | some md => {{
-              <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/60">
+              <div class="post-entry-author">
                 <span>{{
                   (md : Post.PartMetadata).authors.map
                     ({{<span>{{Html.text true ·}}</span>}}) |>.toArray
@@ -307,10 +264,6 @@ private def archiveEntry : Template := do
               {{tags path md}}
             }}
           }}
-          <div class="leanblog-prose post-summary">{{summary}}</div>
-          <a class="link link-primary mt-2" href={{target ++ "/"}}>
-            "Read more"</a>
-        </div>
       </article>
     </li>
   }}]
@@ -318,14 +271,12 @@ private def archiveEntry : Template := do
 private def category : Template := do
   let category : Post.Category ← param "category"
   pure {{
-    <div class="mx-auto max-w-6xl">
-      <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">"Topic"</p>
-          <h1 class="text-4xl font-black tracking-tight sm:text-5xl">{{category.name}}</h1>
-        </div>
-        <a class="btn btn-ghost btn-sm" href=".">"All posts"</a>
+    <div class="category-header">
+      <div>
+        <p class="page-kicker">"Topic"</p>
+        <h1 class="page-title">{{category.name}}</h1>
       </div>
+      <a class="site-back-link" href=".">"← All posts"</a>
     </div>
   }}
 
