@@ -60,7 +60,10 @@ private def post : Template := do
           | none => Html.empty
           | some md => {{
             <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/60">
-              <span>{{(md : Post.PartMetadata).authors.map ({{<span>{{Html.text true ·}}</span>}}) |>.toArray}}</span>
+              <span>{{
+                (md : Post.PartMetadata).authors.map
+                  ({{<span>{{Html.text true ·}}</span>}}) |>.toArray
+              }}</span>
               <span aria-hidden="true">"·"</span>
               <time datetime={{md.date.toIso8601String}}>{{md.date.toIso8601String}}</time>
             </div>
@@ -76,7 +79,8 @@ private def archiveEntry : Template := do
   let summary ← param "summary"
   let target ← post.postName'
   pure #[{{
-    <a class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    <a class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-0.5
+       hover:shadow-md"
        href={{target}}>
       <div class="card-body">
         <h2 class="card-title">{{post.contents.titleString}}</h2>

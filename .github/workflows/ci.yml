@@ -68,6 +68,9 @@ jobs:
         run: test -s theme/dist/site.css
       - name: Check and render starter post
         run: |
+          ./.lake/build/bin/leanblog init .lake/build/init-test
+          test -s .lake/build/init-test/posts/starter.lean.md
+          test -s .lake/build/init-test/targets.tsv
           ./.lake/build/bin/leanblog check examples/posts/starter.lean.md --targets examples/targets.tsv
           ./.lake/build/bin/leanblog build examples/posts/starter.lean.md --targets examples/targets.tsv
           test -s .lake/build/site/index.html

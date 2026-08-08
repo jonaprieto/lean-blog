@@ -19,8 +19,35 @@ open Verso Doc
 open Verso.Genre.Blog
 
 private def usage : String := r#"Usage:
+  leanblog init [<directory>]
   leanblog check <post.lean.md> [--targets <targets.tsv>]
   leanblog build <post.lean.md> [--targets <targets.tsv>] [--output <dir>] [--css <site.css>]
+"#
+
+private def starterPost : String := r#"---
+title: Your first LeanBlog post
+date: 2026-08-08
+authors: Your Name
+---
+
+# Your first LeanBlog post
+
+Write ordinary Markdown here. Add declaration targets to `targets.tsv`, then link to them with
+standard Markdown syntax such as [`Sum`](lean:Sum).
+"#
+
+private def starterTargets : String :=
+  "# name<TAB>href<TAB>description\n"
+
+private def starterReadme : String := r#"# Your LeanBlog
+
+Edit `posts/starter.lean.md`, add declaration targets to `targets.tsv`, and run these commands from
+the LeanBlog repository:
+
+```text
+lake exe leanblog check posts/starter.lean.md --targets targets.tsv
+lake exe leanblog build posts/starter.lean.md --targets targets.tsv
+```
 "#
 
 structure BuildConfig where
@@ -29,6 +56,7 @@ structure BuildConfig where
   css : String := "theme/dist/site.css"
 
 inductive Command where
+  | init (directory : String)
   | check (source : String) (targets : Option String)
   | build (source : String) (config : BuildConfig)
 
@@ -57,6 +85,9 @@ private def parseBuildOptions : List String → BuildConfig → Except String Bu
 
 private def parseCommand : List String → Except String Command
   | ["--help"] | ["-h"] => .error usage
+  | ["init"] => .ok <| Command.init "."
+  | ["init", directory] => .ok <| Command.init directory
+  | "init" :: _ => .error "init accepts at most one directory"
   | "check" :: source :: rest => do
     pure <| Command.check source (← parseTargetsOption rest none)
   | "check" :: [] => .error "check expects a .lean.md source path"
@@ -71,6 +102,37 @@ private def parseCommand : List String → Except String Command
 private def fromExcept {α : Type} : Except String α → IO α
   | .ok value => pure value
   | .error error => throw <| IO.userError error
+
+private def createIfMissing (path : System.FilePath) (contents : String) : IO Bool := do
+  if ← path.pathExists then
+    pure false
+  else
+    IO.FS.writeFile path contents
+    pure true
+
+private def initBlog (directory : String) : IO Unit := do
+  let root : System.FilePath := directory
+  let posts := root.join "posts"
+  IO.FS.createDirAll posts
+  let files := #[
+    (posts.join "starter.lean.md", starterPost),
+    (root.join "targets.tsv", starterTargets),
+    (root.join "README.md", starterReadme)
+  ]
+  let mut created := 0
+  let mut skipped := 0
+  for (path, contents) in files do
+    if ← createIfMissing path contents then
+      created := created + 1
+      IO.println s!"created {path}"
+    else
+      skipped := skipped + 1
+      IO.println s!"kept {path}"
+  IO.println s!"initialized {root} ({created} created, {skipped} kept)"
+  let starter := posts.join "starter.lean.md"
+  let targets := root.join "targets.tsv"
+  IO.println s!"next: edit {starter}"
+  IO.println s!"then run: lake exe leanblog check {starter} --targets {targets}"
 
 private def parseTargetLine (line : String) : Except String (Option (Lean.Name × Target)) := do
   let line := line.trimAscii.toString
@@ -123,16 +185,23 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
   IO.println s!"built {config.output}"
 
 def main (args : List String) : IO UInt32 := do
-  match parseCommand args with
-  | .error error =>
-    IO.eprintln error
-    if error == usage then pure 0 else throw <| IO.userError "invalid command"
-  | .ok (.check source targets) =>
-    checkSource source targets
-    pure 0
-  | .ok (.build source config) =>
-    buildSource source config
-    pure 0
+  try
+    match parseCommand args with
+    | .error error =>
+      IO.eprintln error
+      if error == usage then pure 0 else pure 1
+    | .ok (.init directory) =>
+      initBlog directory
+      pure 0
+    | .ok (.check source targets) =>
+      checkSource source targets
+      pure 0
+    | .ok (.build source config) =>
+      buildSource source config
+      pure 0
+  catch error =>
+    IO.eprintln s!"error: {error}"
+    pure 1
 
 end LeanBlog.Cli
 

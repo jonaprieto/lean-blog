@@ -59,10 +59,14 @@ Then open `examples/collection/index.html` in a browser.
 Build the starter post through Verso:
 
 ```text
+lake exe leanblog init .
 lake build leanblog
 lake exe leanblog check examples/posts/starter.lean.md --targets examples/targets.tsv
 lake exe leanblog build examples/posts/starter.lean.md --targets examples/targets.tsv
 ```
+
+`leanblog init` is safe to rerun: it creates `posts/starter.lean.md`, `targets.tsv`, and
+`README.md` only when they do not already exist, so it will not overwrite writing in progress.
 
 The generated site is in `.lake/build/site`; open `.lake/build/site/index.html` after building the
 stylesheet with the commands above.
