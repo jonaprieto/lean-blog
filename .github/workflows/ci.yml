@@ -50,7 +50,7 @@ jobs:
           restore-keys: lake-${{ runner.os }}-
       - uses: leanprover/lean-action@v1
         with:
-          build-args: "LeanBlog LeanBlog.Properties tests readme demo"
+          build-args: "LeanBlog LeanBlog.Properties tests readme demo leanblog"
       - name: Run tests
         run: ./.lake/build/bin/tests
       - name: Verify README examples
@@ -66,6 +66,12 @@ jobs:
         run: npm ci --prefix theme && npm run build:css --prefix theme
       - name: Verify collection prototype assets
         run: test -s theme/dist/site.css
+      - name: Check and render starter post
+        run: |
+          ./.lake/build/bin/leanblog check examples/posts/starter.lean.md --targets examples/targets.tsv
+          ./.lake/build/bin/leanblog build examples/posts/starter.lean.md --targets examples/targets.tsv
+          test -s .lake/build/site/index.html
+          grep -q '/api/Sum.html#decl-Sum' .lake/build/site/posts/*/index.html
       - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
         with:
           token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}

@@ -6,10 +6,12 @@ the private `precommit-lean` repository used by CI.
 ## Local checks
 
 ```text
-lake build LeanBlog LeanBlog.Properties tests readme demo
+lake build LeanBlog LeanBlog.Properties tests readme demo leanblog
 ./.lake/build/bin/tests
 npm ci --prefix theme
 npm run build:css --prefix theme
+./.lake/build/bin/leanblog check examples/posts/starter.lean.md --targets examples/targets.tsv
+./.lake/build/bin/leanblog build examples/posts/starter.lean.md --targets examples/targets.tsv
 pre-commit run --all-files
 ```
 

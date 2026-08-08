@@ -56,6 +56,17 @@ npm run build:css --prefix theme
 
 Then open `examples/collection/index.html` in a browser.
 
+Build the starter post through Verso:
+
+```text
+lake build leanblog
+lake exe leanblog check examples/posts/starter.lean.md --targets examples/targets.tsv
+lake exe leanblog build examples/posts/starter.lean.md --targets examples/targets.tsv
+```
+
+The generated site is in `.lake/build/site`; open `.lake/build/site/index.html` after building the
+stylesheet with the commands above.
+
 The current lowering slice covers paragraphs, headings, fenced code, inline emphasis, math,
 images, ordinary links, and declaration links. Lists, tables, block quotes, and raw HTML are
 rejected explicitly until their HTML semantics are defined for the blog theme.
@@ -63,15 +74,15 @@ rejected explicitly until their HTML semantics are defined for the blog theme.
 ## Build
 
 ```text
-lake build LeanBlog LeanBlog.Properties tests readme demo
+lake build LeanBlog LeanBlog.Properties tests readme demo leanblog
 ```
 
 ## Design direction
 
 LeanBlog owns the `.lean.md` frontend, site indexing, references, collections, CLI, and theme.
 Verso owns document lowering, Lean highlighting, and HTML generation. Tailwind and daisyUI are part
-of the first visual prototype and will remain theme-build tooling; the Lean build consumes the
-generated CSS.
+of the first visual prototype and the generated starter site; the Lean build consumes the generated
+CSS at build time.
 
 ## License
 
