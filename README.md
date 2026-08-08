@@ -94,6 +94,8 @@ The current lowering slice covers paragraphs, headings, fenced code, inline emph
 Mermaid diagrams, images, ordinary links, and declaration links. Lists, tables, block quotes, and raw HTML are
 rejected explicitly until their HTML semantics are defined for the blog theme.
 
+See [TODO.md](TODO.md) for planned authoring fallbacks and diagnostics improvements.
+
 ## Build
 
 ```text
@@ -106,7 +108,8 @@ LeanBlog owns the Markdown frontend, `.lean.md` declaration links, site indexing
 collections, CLI, and theme.
 Verso owns document lowering, Lean highlighting, and HTML generation. Tailwind and daisyUI are part
 of the first visual prototype and the generated starter site; the Lean build consumes the generated
-CSS at build time.
+CSS at build time. The starter theme includes a responsive drawer/sidebar, clickable topics, a
+post metadata rail, footer, and persisted light/dark switching.
 
 ## License
 

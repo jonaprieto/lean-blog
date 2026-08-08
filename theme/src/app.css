@@ -54,18 +54,89 @@
 
   .leanblog-prose .hl.lean.block {
     @apply my-8 block overflow-x-auto rounded-box bg-neutral p-5 text-sm leading-7 text-neutral-content shadow-sm;
-    --verso-code-color: #e2e8f0;
-    --verso-code-keyword-color: #c084fc;
-    --verso-code-const-color: #67e8f9;
-    --verso-code-var-color: #f0abfc;
+    --verso-code-color: var(--color-neutral-content);
+    --verso-code-keyword-color: var(--color-secondary);
+    --verso-code-const-color: var(--color-info);
+    --verso-code-var-color: var(--color-accent);
   }
 
   .leanblog-prose .hl.lean.block .literal {
-    color: #fbbf24;
+    color: var(--color-warning);
   }
 
   .leanblog-prose .hl.lean.block .comment {
-    color: #94a3b8;
+    color: color-mix(in oklab, var(--color-neutral-content) 65%, transparent);
+  }
+
+  .leanblog-prose .hl.lean .token .hover-info,
+  .leanblog-prose .hl.lean .has-info .hover-info {
+    @apply rounded-box shadow-lg;
+    background-color: var(--color-base-100);
+    border-color: var(--color-base-300);
+    color: var(--color-base-content);
+  }
+
+  .leanblog-prose .hl.lean .hover-info code {
+    color: var(--color-base-content);
+  }
+
+  .leanblog-prose .hl.lean .hover-info.messages > code.error,
+  .leanblog-prose .hl.lean .hover-info.messages > code.warning,
+  .leanblog-prose .hl.lean .hover-info.messages > code.information {
+    background-color: var(--color-base-100);
+    border-left-color: var(--color-base-300);
+    color: var(--color-base-content);
+  }
+
+  .leanblog-prose .hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *) {
+    text-decoration-color: var(--color-error);
+  }
+
+  .leanblog-prose .hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
+    text-decoration-color: var(--color-warning);
+  }
+
+  .leanblog-prose .hl.lean .has-info.information :not(.tactic-state):not(.tactic-state *) {
+    text-decoration-color: var(--color-info);
+  }
+
+  .leanblog-prose .tippy-box[data-theme~='lean'],
+  .leanblog-prose .tippy-box[data-theme~='message'] {
+    @apply rounded-box shadow-lg;
+    background-color: var(--color-base-100);
+    border: 1px solid var(--color-base-300);
+    color: var(--color-base-content);
+  }
+
+  .leanblog-prose .tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before,
+  .leanblog-prose .tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+    border-top-color: var(--color-base-100);
+  }
+
+  .leanblog-prose .tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before,
+  .leanblog-prose .tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+    border-bottom-color: var(--color-base-100);
+  }
+
+  .leanblog-prose .tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before,
+  .leanblog-prose .tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+    border-left-color: var(--color-base-100);
+  }
+
+  .leanblog-prose .tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before,
+  .leanblog-prose .tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+    border-right-color: var(--color-base-100);
+  }
+
+  @media (hover: hover) {
+    .leanblog-prose .hl.lean .token.binding-hl,
+    .leanblog-prose .hl.lean .literal:hover,
+    .leanblog-prose .hl.lean .token.typed:hover,
+    .leanblog-prose .hl.lean .has-info.error:hover,
+    .leanblog-prose .hl.lean .has-info.warning:hover,
+    .leanblog-prose .hl.lean .has-info.information:hover {
+      background-color: var(--color-base-300);
+    }
   }
 
   .leanblog-prose .mermaid {
