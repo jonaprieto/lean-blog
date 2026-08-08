@@ -68,14 +68,20 @@ jobs:
         run: npm ci --prefix theme && npm run build:css --prefix theme
       - name: Verify collection prototype assets
         run: test -s theme/dist/site.css
-      - name: Check and render starter post
+      - name: Check and render example collection
         run: |
           ./.lake/build/bin/leanblog init .lake/build/init-test
           test -s .lake/build/init-test/posts/starter.lean.md
-          ./.lake/build/bin/leanblog check examples/posts/starter.lean.md
-          ./.lake/build/bin/leanblog build examples/posts/starter.lean.md
+          ./.lake/build/bin/leanblog check examples/posts
+          ./.lake/build/bin/leanblog build examples/posts
           test -s .lake/build/site/index.html
+          test -s .lake/build/site/posts/index.html
+          test -s .lake/build/site/api/LeanBlog/Markdown/index.html
+          test -s .lake/build/site/api/LeanBlog/Links/index.html
+          test -s .lake/build/site/api/LeanBlog/Theme/index.html
           grep -q '/api/LeanBlog/Markdown/#LeanBlog___PostSource' .lake/build/site/posts/*/index.html
+          grep -q '/api/LeanBlog/Links/#LeanBlog___DeclarationIndex' .lake/build/site/posts/*/index.html
+          grep -q '/api/LeanBlog/Theme/#LeanBlog___Theme___make' .lake/build/site/posts/*/index.html
       - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
         with:
           token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}

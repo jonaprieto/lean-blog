@@ -4,11 +4,17 @@ date: 2026-08-07
 authors: Your Name
 ---
 
-# A LeanBlog post
+This starter is a real `.lean.md` post: front matter becomes the archive metadata, and the body is
+lowered to Verso's blog document model. The [`PostSource`](lean:LeanBlog.PostSource) value keeps
+the title, date, authors, and parsed Markdown together.
 
-Write ordinary Markdown here. Link to a declaration from the generated Verso cross-reference index
-with standard Markdown syntax:
+The important part is that links stay ordinary Markdown. This one resolves through the generated
+Verso cross-reference index and becomes a link to the declaration page:
 
-[`PostSource`](lean:LeanBlog.PostSource)
+[`PostSource.toPart`](lean:LeanBlog.PostSource.toPart)
 
-For declarations documented outside this project, use a `targets.tsv` override.
+Build one file while writing, or point the same command at `examples/posts` to render the whole
+collection. A normal external link works too: [Verso](https://github.com/leanprover/verso).
+
+For declarations documented outside this project, use a `targets.tsv` override. Local declarations
+from the generated API do not need a hand-maintained registry.

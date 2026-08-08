@@ -176,7 +176,7 @@ private def lowerBlock (index : DeclarationIndex) : MD4Lean.Block → Except Str
 def PostSource.toPart (source : PostSource) (index : DeclarationIndex) :
     Except String (Verso.Doc.Part Post) := do
   let content ← source.document.blocks.mapM (lowerBlock index)
-  pure <| Part.mk #[] source.title (some {
+  pure <| Part.mk #[.text source.title] source.title (some {
     date := source.date
     authors := source.authors
   }) content #[]

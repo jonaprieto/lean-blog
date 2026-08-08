@@ -34,7 +34,10 @@ private def primary : Template := do
         <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <header class="mb-10 flex items-center justify-between gap-4">
             <a class="text-lg font-bold tracking-tight" href=".">"LeanBlog"</a>
-            <span class="badge badge-ghost">"Lean-aware writing"</span>
+            <nav class="flex items-center gap-3 text-sm">
+              <a class="link link-hover" href="./posts/">"Posts"</a>
+              <span class="badge badge-ghost">"Lean-aware writing"</span>
+            </nav>
           </header>
           {{← param "content"}}
           {{posts}}
@@ -79,15 +82,31 @@ private def archiveEntry : Template := do
   let summary ← param "summary"
   let target ← post.postName'
   pure #[{{
-    <a class="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-0.5
-       hover:shadow-md"
-       href={{target}}>
-      <div class="card-body">
-        <h2 class="card-title">{{post.contents.titleString}}</h2>
-        {{summary}}
-        <span class="link link-primary mt-2">"Read more"</span>
-      </div>
-    </a>
+    <li class="h-full">
+      <article class="card h-full border border-base-300 bg-base-100 shadow-sm transition
+         hover:-translate-y-0.5 hover:shadow-md">
+        <div class="card-body">
+          <h2 class="card-title"><a class="link-hover" href={{target}}>
+            {{post.contents.titleString}}</a></h2>
+          {{ match post.contents.metadata with
+            | none => Html.empty
+            | some md => {{
+              <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/60">
+                <span>{{
+                  (md : Post.PartMetadata).authors.map
+                    ({{<span>{{Html.text true ·}}</span>}}) |>.toArray
+                }}</span>
+                <span aria-hidden="true">"·"</span>
+                <time datetime={{md.date.toIso8601String}}>{{md.date.toIso8601String}}</time>
+              </div>
+            }}
+          }}
+          <div class="leanblog-prose post-summary">{{summary}}</div>
+          <a class="link link-primary mt-2" href={{target}}>
+            "Read more"</a>
+        </div>
+      </article>
+    </li>
   }}]
 
 private def category : Template := do

@@ -51,4 +51,21 @@
   .leanblog-prose pre code {
     @apply bg-transparent p-0 text-inherit;
   }
+
+  .post-list {
+    @apply m-0 grid list-none gap-6 p-0 lg:grid-cols-2;
+  }
+
+  .post-list > li,
+  .post-list > li > a {
+    @apply h-full min-w-0;
+  }
+
+  .post-list .card-body {
+    @apply min-w-0;
+  }
+
+  .post-list .card-title {
+    @apply whitespace-normal;
+  }
 }

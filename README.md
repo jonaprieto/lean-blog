@@ -37,7 +37,8 @@ The [`PostSource`](lean:LeanBlog.PostSource) type represents a parsed post.
 
 `lean:` links resolve through the generated Verso cross-reference index by default; an unresolved
 declaration is a build error. Use `--targets targets.tsv` for declarations documented elsewhere.
-See [the starter post](examples/posts/starter.lean.md) and the visual collection prototype.
+See [the starter post](examples/posts/starter.lean.md), the [multi-post examples](examples/posts),
+and the visual collection prototype.
 
 ## Quick start
 
@@ -57,21 +58,26 @@ npm run build:css --prefix theme
 
 Then open `examples/collection/index.html` in a browser.
 
-Build the starter post through Verso:
+Build the example collection through Verso:
 
 ```text
 lake exe leanblog init .
 lake build leanblog
 lake build :literateHtml
-lake exe leanblog check examples/posts/starter.lean.md
-lake exe leanblog build examples/posts/starter.lean.md
+lake exe leanblog check examples/posts
+lake exe leanblog build examples/posts
 ```
 
 `leanblog init` is safe to rerun: it creates `posts/starter.lean.md` and `README.md` only when they
 do not already exist, so it will not overwrite writing in progress.
 
 The generated site is in `.lake/build/site`; open `.lake/build/site/index.html` after building the
-stylesheet with the commands above.
+stylesheet with the commands above. The post archive is at `.lake/build/site/posts/index.html`, and
+the individual posts are nested below it. When `.lake/build/literate-html` exists, the build also
+copies the generated API documentation to `.lake/build/site/api`.
+
+Directory mode walks nested folders and sorts `.lean.md` files by path. A single file remains useful
+for a fast edit-check-render loop.
 
 The current lowering slice covers paragraphs, headings, fenced code, inline emphasis, math,
 images, ordinary links, and declaration links. Lists, tables, block quotes, and raw HTML are
