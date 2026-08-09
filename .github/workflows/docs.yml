@@ -98,6 +98,20 @@ jobs:
           assert 'class="site-topic-links"' not in html
           assert 'href="tutorial/"' not in html
           PY
+      - name: Validate generated theme scripts
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const html = fs.readFileSync(
+            ".lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html",
+            "utf8"
+          );
+          const match = html.match(
+            /<script>\s*\(\(\) => \{[\s\S]*?\n\}\)\(\);\s*<\/script>/
+          );
+          if (!match) throw new Error("theme script missing");
+          new Function(match[0].replace(/^<script>|<\/script>$/g, ""));
+          NODE
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:

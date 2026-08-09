@@ -100,9 +100,10 @@ private def themeAssets : Html :=
       const nav = toc.querySelector('[data-post-toc-nav]');
       const requestedDepth = Number.parseInt(toc.dataset.postTocDepth || '3', 10);
       const depth = Number.isFinite(requestedDepth) ? Math.max(1, Math.min(6, requestedDepth)) : 3;
+      const selectors = Array.from({ length: depth }, (_, index) =>
+        `.leanblog-prose h${index + 1}`).join(', ');
       const headings = article
-        ? Array.from(article.querySelectorAll(
-            Array.from({ length: depth }, (_, index) => `.leanblog-prose h${index + 1}`).join(', '))
+        ? Array.from(article.querySelectorAll(selectors))
         : [];
       if (!nav || headings.length < 2) {
         toc.hidden = true;
