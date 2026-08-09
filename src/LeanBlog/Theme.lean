@@ -113,7 +113,8 @@ private def themeAssets : Html :=
         return;
       }
       const usedIds = new Set();
-      const slugify = (text) => text.toLowerCase().trim()
+      const slugify = (text) => text.normalize('NFKD').toLowerCase().trim()
+        .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const list = document.createElement('ul');
       const stack = [{ level: 0, list }];
@@ -130,6 +131,8 @@ private def themeAssets : Html :=
         }
         usedIds.add(id);
         heading.id = id;
+        heading.setAttribute('data-toc-target', '');
+        heading.setAttribute('tabindex', '-1');
         const level = Number(heading.tagName.slice(1));
         while (stack.length > 1 && level <= stack[stack.length - 1].level) stack.pop();
         const item = document.createElement('li');
@@ -137,6 +140,16 @@ private def themeAssets : Html :=
         link.className = `post-toc-link post-toc-level-${heading.tagName.slice(1)}`;
         link.href = `#${id}`;
         link.textContent = heading.textContent || id;
+        link.addEventListener('click', (event) => {
+          event.preventDefault();
+          const target = document.getElementById(id);
+          if (!target) return;
+          const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+          history.pushState(null, '', `#${id}`);
+          target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+          target.focus({ preventScroll: true });
+          setActive(target);
+        });
         item.append(link);
         stack[stack.length - 1].list.append(item);
         const next = headings[index + 1];
@@ -167,6 +180,10 @@ private def themeAssets : Html :=
       };
       updateActive();
       window.addEventListener('scroll', updateActive, { passive: true });
+      const initialTarget = document.getElementById(window.location.hash.slice(1));
+      if (initialTarget && initialTarget.hasAttribute('data-toc-target')) {
+        requestAnimationFrame(() => initialTarget.scrollIntoView({ block: 'start' }));
+      }
     });
   };
   const splitNode = (node) => {

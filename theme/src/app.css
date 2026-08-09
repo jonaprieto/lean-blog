@@ -47,8 +47,15 @@
 
   /* Verso's search assets provide the accessible combobox and full-text result
      renderer; these rules keep both views inside LeanBlog's compact visual system. */
-  #search-wrapper {
-    @apply order-3 w-full sm:order-2 sm:w-auto;
+  .site-header-inner #search-wrapper {
+    @apply relative order-3 block h-auto max-h-none min-w-0 w-full flex-none
+      overflow-visible bg-transparent sm:order-2 sm:w-72;
+  }
+
+  .site-header-inner #search-wrapper .combobox,
+  .site-header-inner #search-wrapper .combobox-list,
+  .site-header-inner #search-wrapper .group {
+    @apply relative w-full;
   }
 
   .site-header-inner .site-theme-toggle {
@@ -73,8 +80,8 @@
   }
 
   .site-header-inner #search-wrapper ul[role="listbox"] {
-    @apply mt-2 max-h-96 w-full overflow-auto rounded-box border border-base-300
-      bg-base-100 text-base-content shadow-lg sm:w-72;
+    @apply z-50 mt-2 max-h-96 w-full overflow-auto rounded-box border border-base-300
+      bg-base-100 text-base-content shadow-lg;
   }
 
   .site-header-inner #search-wrapper ul[role="listbox"] li {
@@ -309,6 +316,10 @@
 
   .leanblog-prose h2 {
     @apply mt-12 mb-4 text-2xl font-semibold tracking-tight text-base-content;
+  }
+
+  .leanblog-prose :is(h1, h2, h3)[id] {
+    scroll-margin-top: 6rem;
   }
 
   .leanblog-prose a {

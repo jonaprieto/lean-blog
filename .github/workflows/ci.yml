@@ -108,6 +108,9 @@ jobs:
           grep -q 'class="post-title"' .lake/build/site/2026-8-7-a-leanblog-post/index.html
           grep -q 'data-post-toc' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'data-post-toc-depth="3"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'data-toc-target' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'scrollIntoView' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'history.pushState' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'class="leanblog-code"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'data-code-source' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'data-code-copy' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
