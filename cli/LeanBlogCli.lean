@@ -616,6 +616,24 @@ private def writeSearchAssets (config : BuildConfig) (posts : Array LoadedPost) 
   IO.FS.createDirAll searchPageDir
   IO.FS.writeFile (searchPageDir / "index.html") (searchPage)
 
+private def versionCssHref (html css : String) : String :=
+  let marker := "href=\"-verso-data/leanblog.css"
+  let version := Verso.Search.hashHex (hash css)
+  let replacement := s!"href=\"-verso-data/leanblog.css?v={version}"
+  match html.splitOn marker with
+  | [] => html
+  | first :: rest =>
+    first ++ String.intercalate "" (rest.map fun part =>
+      replacement ++ (part.dropWhile (· != '"')).copy)
+
+private def versionCssLinks (output : String) (css : String) : IO Unit := do
+  let root : System.FilePath := output
+  for page in (← root.walkDir).filter (·.toString.endsWith ".html") do
+    let html ← IO.FS.readFile page
+    let versioned := versionCssHref html css
+    unless versioned == html do
+      IO.FS.writeFile page versioned
+
 private def writeRawPages (output : String) (posts : Array LoadedPost) : IO Unit := do
   for post in posts do
     let slug := defaultPostName post.source.date post.source.title
@@ -794,6 +812,7 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
   injectRelatedPosts config.output posts
   writeRawPages config.output posts
   writeSearchAssets config posts
+  versionCssLinks config.output css
   if ← copyGeneratedDocs config then
     IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.docsDirectory}"
   IO.println s!"built {config.output}"

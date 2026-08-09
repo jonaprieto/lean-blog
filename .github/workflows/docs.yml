@@ -86,6 +86,7 @@ jobs:
           grep -q 'class="leanblog-related"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'class="related-card-body"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
           grep -q 'class="site-header"' .lake/build/pages/index.html
+          grep -Eq 'href="-verso-data/leanblog.css\?v=[0-9a-f]{16}"' .lake/build/pages/index.html
           grep -q 'class="post-list"' .lake/build/pages/index.html
           grep -q 'class="post-entry-row"' .lake/build/pages/index.html
           ! grep -q 'class="post-entry-author"' .lake/build/pages/index.html
