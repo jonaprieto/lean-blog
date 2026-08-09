@@ -51,8 +51,7 @@ def answer : Nat := 42
 
 private def starterReadme : String := r#"# Your LeanBlog
 
-Edit `posts/starter.lean.md`, build the Verso cross-reference index, and run these commands from
-your Lake project:
+Edit `posts/starter.lean.md` and `leanblog.json`, then run these commands from your Lake project:
 
 ```text
 lake build :literateHtml
@@ -65,6 +64,24 @@ folders, sorts posts by path, and builds one archive. When local Verso docs
 exist, `build` copies them into the site's `/api` directory so declaration links work in the
 generated site.
 "#
+
+private def starterConfig : String := r#"{
+  "title": "Your LeanBlog",
+  "tagline": "A calm home for your writing.",
+  "author": "",
+  "siteUrl": "",
+  "basePath": "/",
+  "footer": "Built with LeanBlog, Verso, Tailwind, and daisyUI.",
+  "archiveTitle": "Recent posts",
+  "archiveLabel": "All posts",
+  "docsRoot": "/api",
+  "docsDirectory": "api",
+  "defaultTheme": "system",
+  "navigation": []
+}
+"#
+
+private def starterGitignore : String := ".lake/\ntheme/node_modules/\ntheme/dist/\n"
 
 structure LinkConfig where
   targets : Option String := none
@@ -196,7 +213,9 @@ private def initBlog (directory : String) : IO Unit := do
   IO.FS.createDirAll posts
   let files := #[
     (posts.join "starter.lean.md", starterPost),
-    (root.join "README.md", starterReadme)
+    (root.join "README.md", starterReadme),
+    (root.join "leanblog.json", starterConfig),
+    (root.join ".gitignore", starterGitignore)
   ]
   let mut created := 0
   let mut skipped := 0
