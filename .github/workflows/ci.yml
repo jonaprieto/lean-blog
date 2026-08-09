@@ -98,6 +98,9 @@ jobs:
           ! grep -q 'class="post-entry-author"' .lake/build/site/index.html
           grep -q 'class="post-title"' .lake/build/site/2026-8-7-a-leanblog-post/index.html
           grep -q 'data-post-toc' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'data-post-toc-depth="3"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'class="post-layout"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          ! grep -q '<details class="post-toc"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'buildTableOfContents' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'Source model' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'Display mathematics' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
