@@ -1,0 +1,14 @@
+{
+  "title": "LeanBlog",
+  "tagline": "A calm home for Lean-aware writing.",
+  "author": "",
+  "siteUrl": "",
+  "basePath": "/",
+  "footer": "Built with LeanBlog, Verso, Tailwind, and daisyUI.",
+  "archiveTitle": "Recent posts",
+  "archiveLabel": "All posts",
+  "docsRoot": "/api",
+  "docsDirectory": "api",
+  "defaultTheme": "system",
+  "navigation": []
+}

@@ -73,6 +73,7 @@ structure LinkConfig where
 
 structure BuildConfig where
   links : LinkConfig := {}
+  site : SiteConfig := {}
   output : String := ".lake/build/site"
   css : String := "theme/dist/site.css"
   docsDirectory : String := "api"
@@ -90,6 +91,12 @@ private def docsRootSpec :=
   Spec.map (·.getD "/api")
     (Spec.opt (Spec.flag "docs-root" none "URL path for generated API docs" Param.str))
 
+private def docsRootOverrideSpec :=
+  Spec.opt (Spec.flag "docs-root" none "URL path for generated API docs" Param.str)
+
+private def configSpec :=
+  Spec.opt (Spec.flag "config" none "Site configuration JSON file" Param.path)
+
 argus_opts CheckOptions where
   source : String := Spec.arg "SOURCE" "Markdown file or posts directory" Param.path;
   targets : Option String := targetsSpec;
@@ -98,11 +105,12 @@ argus_opts CheckOptions where
 
 argus_opts BuildOptions where
   source : String := Spec.arg "SOURCE" "Markdown file or posts directory" Param.path;
+  config : Option String := configSpec;
   targets : Option String := targetsSpec;
   xref : Option String := xrefSpec;
-  docsRoot : String := docsRootSpec;
-  docsDirectory : String := Spec.map (·.getD "api")
-    (Spec.opt (Spec.flag "docs-directory" none "Generated API docs directory" Param.path));
+  docsRoot : Option String := docsRootOverrideSpec;
+  docsDirectory : Option String :=
+    Spec.opt (Spec.flag "docs-directory" none "Generated API docs directory" Param.path);
   output : String := Spec.map (·.getD ".lake/build/site")
     (Spec.opt (Spec.flag "output" none "Generated site directory" Param.path));
   css : String := Spec.map (·.getD "theme/dist/site.css")
@@ -234,6 +242,17 @@ private def findXref (configured? : Option String) : IO (Option System.FilePath)
     ]
     pure <| ← candidates.findM? (·.pathExists)
 
+private def loadSiteConfig (configured? : Option String) : IO SiteConfig := do
+  let path : System.FilePath := configured?.getD "leanblog.json"
+  if !(← path.pathExists) then
+    pure {}
+  else
+    let json ← fromExcept <| Json.parse (← IO.FS.readFile path)
+    match SiteConfig.fromJson? json with
+    | .ok config => pure config
+    | .error error =>
+      throw <| IO.userError s!"{path}: invalid site configuration: {error}"
+
 private def loadXref (path : System.FilePath) (docsRoot : String)
     (index : DeclarationIndex) : IO DeclarationIndex := do
   let json ← fromExcept <| Json.parse (← IO.FS.readFile path)
@@ -345,7 +364,7 @@ private def injectRelatedPosts (output : String) (posts : Array LoadedPost) : IO
     let related := relatedPosts current posts
     IO.FS.writeFile page <| html.replace marker (relatedSection related)
 
-private def rawPage (post : LoadedPost) : String :=
+private def rawPage (config : SiteConfig) (post : LoadedPost) : String :=
   let content := {{
     <html lang="en">
       <head>
@@ -359,7 +378,7 @@ private def rawPage (post : LoadedPost) : String :=
         <div class="site-shell flex min-h-screen flex-col">
           <header class="site-header">
             <div class="site-header-inner">
-              <a class="site-brand" href="../../">"LeanBlog"</a>
+              <a class="site-brand" href="../../">{{config.title}}</a>
               <nav class="site-nav" aria-label="Raw source navigation">
                 <a class="site-link site-link-strong" href="../">"Back to post"</a>
               </nav>
@@ -441,7 +460,12 @@ document.addEventListener("keydown", (event) => {
 });
 "##
 
-private def searchThemeJs : String := r#"
+private def searchThemeJs (config : SiteConfig) : String :=
+  let configuredTheme := match config.defaultTheme with
+    | "dark" => "'dark'"
+    | "light" => "'light'"
+    | _ => "preferred"
+  (r#"
 (() => {
   const root = document.documentElement;
   const stored = (() => {
@@ -469,28 +493,33 @@ private def searchThemeJs : String := r#"
     });
   });
 })();
-"#
+"#).replace
+    "root.dataset.theme = stored === \"dark\" || stored === \"light\" ? stored : preferred;"
+    ("root.dataset.theme = stored === \"dark\" || stored === \"light\" ? stored : " ++
+      configuredTheme ++ ";")
 
-private def searchPage : String :=
+private def searchPage (config : SiteConfig) : String :=
   let searchAssets := Verso.Search.searchAssetTags
+  let initialTheme := if config.defaultTheme == "dark" then "dark" else "light"
   let page := {{
-    <html lang="en" data-theme="light">
+    <html lang="en" data-theme={{initialTheme}}>
       <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        {{Theme.siteMetadata config}}
         <base href=".././"/>
-        <title>"Search · LeanBlog"</title>
+        <title>"Search · "{{config.title}}</title>
         <link rel="stylesheet" href="-verso-data/leanblog.css"/>
         {{searchAssets}}
-        <script>{{Html.text false searchThemeJs}}</script>
+        <script>{{Html.text false (searchThemeJs config)}}</script>
       </head>
       <body class="site-body min-h-screen bg-base-100 text-base-content">
         <div class="site-shell flex min-h-screen flex-col">
           <header class="site-header">
             <div class="site-header-inner">
-              <a class="site-brand" href=".">"LeanBlog"</a>
+              <a class="site-brand" href=".">{{config.title}}</a>
               <nav class="site-nav" aria-label="Primary">
-                <a class="site-link site-link-strong" href=".">"All posts"</a>
+                {{Theme.navigation config}}
               </nav>
               <button type="button" class="site-theme-toggle" data-theme-toggle
                 aria-label="Toggle color theme">
@@ -515,7 +544,7 @@ private def searchPage : String :=
           </main>
           <footer class="site-footer">
             <div class="site-footer-inner">
-              "Built with LeanBlog, Verso, Tailwind, and daisyUI."
+              {{config.footer}}
             </div>
           </footer>
         </div>
@@ -614,7 +643,7 @@ private def writeSearchAssets (config : BuildConfig) (posts : Array LoadedPost) 
     IO.FS.writeFile xrefOutput "{}\n"
   let searchPageDir := (System.FilePath.mk config.output).join "search"
   IO.FS.createDirAll searchPageDir
-  IO.FS.writeFile (searchPageDir / "index.html") (searchPage)
+  IO.FS.writeFile (searchPageDir / "index.html") (searchPage config.site)
 
 private def versionCssHref (html css : String) : String :=
   let marker := "href=\"-verso-data/leanblog.css"
@@ -634,12 +663,12 @@ private def versionCssLinks (output : String) (css : String) : IO Unit := do
     unless versioned == html do
       IO.FS.writeFile page versioned
 
-private def writeRawPages (output : String) (posts : Array LoadedPost) : IO Unit := do
+private def writeRawPages (output : String) (site : SiteConfig) (posts : Array LoadedPost) : IO Unit := do
   for post in posts do
     let slug := defaultPostName post.source.date post.source.title
     let directory := (System.FilePath.mk output).join slug |>.join "raw"
     IO.FS.createDirAll directory
-    IO.FS.writeFile (directory.join "index.html") (rawPage post)
+    IO.FS.writeFile (directory.join "index.html") (rawPage site post)
 
 private def sourceFiles (sourcePath : String) : IO (Array System.FilePath) := do
   let isMarkdown (path : System.FilePath) := path.toString.endsWith ".md"
@@ -798,19 +827,19 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
     highlighted.find? (·.source == source) |>.map (·.rendered)
   let contents ← posts.mapM (fun post => lowerPost post index highlight?)
   let css ← IO.FS.readFile config.css
-  let home : Part Page := Verso.Doc.Part.mk #[.text "LeanBlog"] "LeanBlog" none
-    #[.para #[.text "A calm home for Lean-aware writing."]] #[]
+  let home : Part Page := Verso.Doc.Part.mk #[.text config.site.title] config.site.title none
+    #[.para #[.text config.site.tagline]] #[]
   let blogPosts := contents.mapIdx fun index contents =>
     {id := Lean.Name.mkSimple s!"post{index}", contents}
   -- A root blog is not registered by Verso's root-site traversal. An empty blog child keeps the
   -- archive at `/` while using the normal directory-blog path that registers categories correctly.
   let site : Site := .page `home home #[.blog "" `blog home blogPosts]
-  let status ← blogMain (Theme.make css) site (codeLinkTargets index)
+  let status ← blogMain (Theme.make css config.site) site (codeLinkTargets index)
     ["--output", config.output]
   if status != 0 then
     throw <| IO.userError s!"Verso failed to build {sourcePath}"
   injectRelatedPosts config.output posts
-  writeRawPages config.output posts
+  writeRawPages config.output config.site posts
   writeSearchAssets config posts
   versionCssLinks config.output css
   if ← copyGeneratedDocs config then
@@ -820,11 +849,19 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
 private def checkLinks (options : CheckOptions) : LinkConfig :=
   { targets := options.targets, xref := options.xref, docsRoot := options.docsRoot }
 
-private def buildConfig (options : BuildOptions) : BuildConfig :=
-  { links := { targets := options.targets, xref := options.xref, docsRoot := options.docsRoot }
+private def buildConfig (options : BuildOptions) : IO BuildConfig := do
+  let site ← loadSiteConfig options.config
+  pure {
+    links := {
+      targets := options.targets
+      xref := options.xref
+      docsRoot := options.docsRoot.getD site.docsRoot
+    }
+    site
     output := options.output
     css := options.css
-    docsDirectory := options.docsDirectory }
+    docsDirectory := options.docsDirectory.getD site.docsDirectory
+  }
 
 private def runAction : Action → IO UInt32
   | .init options => do
@@ -834,7 +871,7 @@ private def runAction : Action → IO UInt32
     checkSource options.source (checkLinks options)
     pure 0
   | .build options => do
-    buildSource options.source (buildConfig options)
+    buildSource options.source (← buildConfig options)
     pure 0
 
 private def reportRuntimeError (error : IO.Error) : IO UInt32 := do

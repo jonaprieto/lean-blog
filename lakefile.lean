@@ -22,6 +22,7 @@ lean_lib «LeanBlog» where
   srcDir := "src"
   globs := #[
     .one `LeanBlog,
+    .one `LeanBlog.Config,
     .one `LeanBlog.Icons,
     .one `LeanBlog.Links,
     .one `LeanBlog.Markdown,
