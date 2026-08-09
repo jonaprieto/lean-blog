@@ -66,7 +66,14 @@ npm run build:css --prefix theme
 
 Then open `examples/collection/index.html` in a browser.
 
-Build the example collection through Verso:
+The canonical site build command runs the required preparation stages and renders the collection:
+
+```text
+node tools/build-site.mjs examples/posts
+```
+
+Its output is in `.lake/build/site`. Use `node tools/build-site.mjs --help` for deployment-path and
+incremental-build options. The equivalent individual commands are:
 
 ```text
 lake exe leanblog init .

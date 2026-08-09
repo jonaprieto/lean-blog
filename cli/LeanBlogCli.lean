@@ -104,10 +104,6 @@ private def targetsSpec :=
 private def xrefSpec :=
   Spec.opt (Spec.flag "xref" none "Verso cross-reference index" Param.path)
 
-private def docsRootSpec :=
-  Spec.map (·.getD "/api")
-    (Spec.opt (Spec.flag "docs-root" none "URL path for generated API docs" Param.str))
-
 private def docsRootOverrideSpec :=
   Spec.opt (Spec.flag "docs-root" none "URL path for generated API docs" Param.str)
 
@@ -116,9 +112,10 @@ private def configSpec :=
 
 argus_opts CheckOptions where
   source : String := Spec.arg "SOURCE" "Markdown file or posts directory" Param.path;
+  config : Option String := configSpec;
   targets : Option String := targetsSpec;
   xref : Option String := xrefSpec;
-  docsRoot : String := docsRootSpec
+  docsRoot : Option String := docsRootOverrideSpec
 
 argus_opts BuildOptions where
   source : String := Spec.arg "SOURCE" "Markdown file or posts directory" Param.path;
@@ -866,8 +863,13 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
     IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.docsDirectory}"
   IO.println s!"built {config.output}"
 
-private def checkLinks (options : CheckOptions) : LinkConfig :=
-  { targets := options.targets, xref := options.xref, docsRoot := options.docsRoot }
+private def checkLinks (options : CheckOptions) : IO LinkConfig := do
+  let site ← loadSiteConfig options.config
+  pure {
+    targets := options.targets
+    xref := options.xref
+    docsRoot := options.docsRoot.getD site.docsRoot
+  }
 
 private def buildConfig (options : BuildOptions) : IO BuildConfig := do
   let site ← loadSiteConfig options.config
@@ -888,7 +890,7 @@ private def runAction : Action → IO UInt32
     initBlog (options.directory.getD ".")
     pure 0
   | .check options => do
-    checkSource options.source (checkLinks options)
+    checkSource options.source (← checkLinks options)
     pure 0
   | .build options => do
     buildSource options.source (← buildConfig options)
