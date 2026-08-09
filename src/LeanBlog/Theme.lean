@@ -98,9 +98,11 @@ private def themeAssets : Html :=
     document.querySelectorAll('[data-post-toc]').forEach((toc) => {
       const article = toc.closest('.post-page');
       const nav = toc.querySelector('[data-post-toc-nav]');
+      const requestedDepth = Number.parseInt(toc.dataset.postTocDepth || '3', 10);
+      const depth = Number.isFinite(requestedDepth) ? Math.max(1, Math.min(6, requestedDepth)) : 3;
       const headings = article
         ? Array.from(article.querySelectorAll(
-            '.leanblog-prose h1, .leanblog-prose h2, .leanblog-prose h3'))
+            Array.from({ length: depth }, (_, index) => `.leanblog-prose h${index + 1}`).join(', '))
         : [];
       if (!nav || headings.length < 2) {
         toc.hidden = true;
@@ -109,7 +111,7 @@ private def themeAssets : Html :=
       const usedIds = new Set();
       const slugify = (text) => text.toLowerCase().trim()
         .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      const list = document.createElement('ul');
+      const list = document.createElement('ol');
       headings.forEach((heading, index) => {
         const baseId = heading.id || slugify(heading.textContent || '') || `section-${index + 1}`;
         let id = baseId;
@@ -255,12 +257,16 @@ private def post : Template := do
             }}
           }}
       </header>
-      <details class="post-toc" data-post-toc hidden>
-        <summary>"On this page"</summary>
-        <nav data-post-toc-nav aria-label="Table of contents"></nav>
-      </details>
-      <div class="leanblog-prose">{{← param "content"}}</div>
-      <div id="leanblog-related-posts"></div>
+      <div class="post-layout">
+        <div class="post-main">
+          <div class="leanblog-prose">{{← param "content"}}</div>
+          <div id="leanblog-related-posts"></div>
+        </div>
+        <aside class="post-toc" data-post-toc data-post-toc-depth="3" hidden>
+          <p class="post-toc-title">"On this page"</p>
+          <nav data-post-toc-nav aria-label="Table of contents"></nav>
+        </aside>
+      </div>
     </article>
   }}
 

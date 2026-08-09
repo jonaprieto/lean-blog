@@ -111,11 +111,11 @@
   }
 
   .post-page {
-    @apply mx-auto max-w-3xl;
+    @apply mx-auto max-w-5xl;
   }
 
   .post-header {
-    @apply mb-8 border-b border-base-300 pb-5;
+    @apply mb-8;
   }
 
   .post-title {
@@ -123,24 +123,24 @@
   }
 
   .post-meta {
-    @apply mt-4 flex flex-wrap items-center gap-2 text-sm text-base-content/60;
+    @apply mt-3 flex flex-wrap items-center gap-2 text-sm text-base-content/60;
   }
 
   .post-toc {
-    @apply my-6 border-y border-base-300 py-2;
+    @apply order-first self-start lg:order-last lg:sticky lg:top-6;
   }
 
-  .post-toc summary {
-    @apply cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.14em]
+  .post-toc-title {
+    @apply mb-3 text-xs font-semibold uppercase tracking-[0.14em]
       text-base-content/60;
   }
 
-  .post-toc summary::-webkit-details-marker {
-    display: none;
+  .post-toc nav {
+    @apply border-l border-base-300 pl-4;
   }
 
-  .post-toc nav ul {
-    @apply mt-2 grid gap-1 sm:grid-cols-2;
+  .post-toc nav ol {
+    @apply m-0 grid list-none gap-2 p-0;
   }
 
   .post-toc-link {
@@ -157,6 +157,14 @@
 
   .leanblog-prose {
     @apply max-w-3xl text-base leading-8 text-base-content/85;
+  }
+
+  .post-layout {
+    @apply grid gap-y-8 lg:grid-cols-[minmax(0,1fr)_13rem] lg:gap-x-12;
+  }
+
+  .post-main {
+    @apply min-w-0;
   }
 
   .leanblog-prose h1 {
