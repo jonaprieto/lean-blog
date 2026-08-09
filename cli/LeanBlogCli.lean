@@ -682,7 +682,8 @@ private def versionCssLinks (output : String) (css : String) : IO Unit := do
     unless versioned == html do
       IO.FS.writeFile page versioned
 
-private def writeRawPages (output : String) (site : SiteConfig) (posts : Array LoadedPost) : IO Unit := do
+private def writeRawPages (output : String) (site : SiteConfig)
+    (posts : Array LoadedPost) : IO Unit := do
   for post in posts do
     let slug := defaultPostName post.source.date post.source.title
     let directory := (System.FilePath.mk output).join slug |>.join "raw"
