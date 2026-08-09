@@ -41,6 +41,10 @@ declaration is a build error. Use `--targets targets.tsv` for declarations docum
 See [the starter post](examples/posts/starter.lean.md), the [multi-post examples](examples/posts),
 and the visual collection prototype.
 
+Generated sites include a local full-text search at `/search/`. It searches titles, tags, headings,
+prose, mathematics, and code in the browser, with stemming, weighted ranking, snippets, highlighting,
+lazy-loaded result content, and no server-side search service.
+
 The `leanblog` CLI uses [lean-argus](https://github.com/jonaprieto/lean-argus) for typed options,
 derived help, shell completions, and terminal diagnostics. Runtime failures are rendered with the
 workspace's `termcolor-diagnostics` stack instead of ad-hoc error strings.

@@ -9,6 +9,9 @@ import Argus.Term
 import SubVerso.Compat
 import SubVerso.Highlighting.Code
 import VersoBlog
+import Verso.Output.Html.ElasticLunr
+import VersoLiterateCode
+import VersoSearch
 
 /-!
 # `leanblog` command
@@ -25,6 +28,7 @@ open TermColor
 open TermColor.Diagnostics
 open Verso Doc Output Html
 open Verso.Genre.Blog
+open Verso.Search
 
 private def starterPost : String := r#"---
 title: Your first LeanBlog post
@@ -374,6 +378,244 @@ private def rawPage (post : LoadedPost) : String :=
   }}
   content.asString (breakLines := true)
 
+private def searchInitJs : String := r##"
+import { domainMappers, searchPriorities } from "./domain-mappers.js";
+import { registerSearch } from "./search-box.js";
+
+const searchHTML = `<div id="search-wrapper" class="verso-search-results">
+  <div class="combobox combobox-list">
+    <div class="group">
+      <div
+        id="cb1-input"
+        class="cb_edit"
+        contenteditable="true"
+        role="searchbox"
+        placeholder="Search posts..."
+        aria-autocomplete="list"
+        aria-expanded="false"
+        aria-controls="cb1-listbox"
+        aria-haspopup="listbox"
+        aria-label="Search posts"
+        spellcheck="false"
+        autocorrect="false"
+        autocapitalize="none"
+        inputmode="search"
+      ></div>
+    </div>
+    <ul id="cb1-listbox" role="listbox" aria-label="Search results"></ul>
+  </div>
+</div>`;
+
+const data = fetch("xref.json").then((response) => {
+  if (!response.ok) throw new Error(`Search metadata failed: ${response.status}`);
+  return response.json();
+});
+
+window.addEventListener("load", () => {
+  if (document.querySelector("[data-search-host]")) return;
+  const mount = document.querySelector(".site-header-inner");
+  if (!mount) return;
+  mount.insertAdjacentHTML("beforeend", searchHTML);
+  const searchWrapper = document.querySelector(".combobox-list");
+  data.then((json) => {
+    registerSearch({
+      searchWrapper,
+      data: json,
+      domainMappers,
+      searchPriorities,
+      docPriorities: window.docPriorities ?? {},
+      searchPagePath: window.searchPagePath ?? "search/",
+    });
+  }).catch((error) => console.error(error));
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+  const target = event.target;
+  if (target instanceof HTMLElement &&
+      target.closest("input, textarea, select, button, a, [contenteditable='true']")) return;
+  const search = document.querySelector("#search-wrapper .cb_edit, #search-page-input");
+  if (!(search instanceof HTMLElement)) return;
+  event.preventDefault();
+  search.focus();
+});
+"##
+
+private def searchThemeJs : String := r#"
+(() => {
+  const root = document.documentElement;
+  const stored = (() => {
+    try { return localStorage.getItem("leanblog-theme"); } catch (_) { return null; }
+  })();
+  const preferred = window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark" : "light";
+  root.dataset.theme = stored === "dark" || stored === "light" ? stored : preferred;
+  const update = () => {
+    const dark = root.dataset.theme === "dark";
+    document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+      button.querySelector("[data-theme-icon-light]").hidden = dark;
+      button.querySelector("[data-theme-icon-dark]").hidden = !dark;
+      button.setAttribute("aria-label", dark ? "Use light theme" : "Use dark theme");
+    });
+  };
+  document.addEventListener("DOMContentLoaded", () => {
+    update();
+    document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+      button.addEventListener("click", () => {
+        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+        try { localStorage.setItem("leanblog-theme", root.dataset.theme); } catch (_) {}
+        update();
+      });
+    });
+  });
+})();
+"#
+
+private def searchPage : String :=
+  let searchAssets := Verso.Search.searchAssetTags
+  let page := {{
+    <html lang="en" data-theme="light">
+      <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <base href=".././"/>
+        <title>"Search · LeanBlog"</title>
+        <link rel="stylesheet" href="-verso-data/leanblog.css"/>
+        {{searchAssets}}
+        <script>{{Html.text false searchThemeJs}}</script>
+      </head>
+      <body class="site-body min-h-screen bg-base-100 text-base-content">
+        <div class="site-shell flex min-h-screen flex-col">
+          <header class="site-header">
+            <div class="site-header-inner">
+              <a class="site-brand" href=".">"LeanBlog"</a>
+              <nav class="site-nav" aria-label="Primary">
+                <a class="site-link site-link-strong" href=".">"All posts"</a>
+              </nav>
+              <button type="button" class="site-theme-toggle" data-theme-toggle
+                aria-label="Toggle color theme">
+                <span data-theme-icon-light>{{Icon.toHtml .moon}}</span>
+                <span data-theme-icon-dark hidden>{{Icon.toHtml .sun}}</span>
+              </button>
+            </div>
+          </header>
+          <main class="site-main w-full flex-1">
+            <div class="site-content">
+              <article class="search-page-content">
+                <p class="page-kicker">"Archive"</p>
+                <h1 class="page-title">"Search posts"</h1>
+                <p class="search-page-intro">
+                  "Search titles, tags, headings, prose, mathematics, and code."
+                </p>
+                <div data-search-host class="search-page-host" role="search"
+                  aria-label="Search posts"></div>
+                <div id="search-page-results"></div>
+              </article>
+            </div>
+          </main>
+          <footer class="site-footer">
+            <div class="site-footer-inner">
+              "Built with LeanBlog, Verso, Tailwind, and daisyUI."
+            </div>
+          </footer>
+        </div>
+        <script type="module" src="-verso-search/search-page.js"></script>
+      </body>
+    </html>
+  }}
+  page.asString (breakLines := true)
+
+private def searchableAttrText (text : Array MD4Lean.AttrText) : String :=
+  text.foldl (init := "") fun result part =>
+    match part with
+    | .normal value | .entity value => result ++ value
+    | .nullchar => result
+
+mutual
+  private def searchableInline : MD4Lean.Text → String
+    | .normal value | .entity value => value
+    | .nullchar => ""
+    | .br value | .softbr value => value
+    | .em content | .strong content | .u content | .del content => searchableInlines content
+    | .code content => String.join content.toList
+    | .latexMath content | .latexMathDisplay content => String.join content.toList
+    | .img _ _title alt => searchableInlines alt
+    | .wikiLink _target content => searchableInlines content
+    | .a _href _title _isAuto content => searchableInlines content
+
+  private def searchableInlines (content : Array MD4Lean.Text) : String :=
+    content.foldl (init := "") fun result inline => result ++ searchableInline inline
+
+  private def searchableBlock : MD4Lean.Block → String
+    | .p content => searchableInlines content
+    | .header _level content => searchableInlines content
+    | .code _info _lang _fence content => String.join content.toList
+    | .hr => ""
+    | .blockquote _ | .ul _ _ _ | .ol _ _ _ _ | .html _ | .table _ _ => ""
+end
+
+private def searchableBody (document : MD4Lean.Document) : String :=
+  document.blocks.toList.map searchableBlock |> String.intercalate "\n\n"
+
+private def searchBucket (ref : String) : UInt8 := Id.run do
+  let mut hash := 0
+  let mut index := 0
+  while h : index < ref.utf8ByteSize do
+    hash := hash + ref.getUTF8Byte ⟨index⟩ h
+    index := index + 1
+  hash
+
+private def writeSearchAssets (config : BuildConfig) (posts : Array LoadedPost) : IO Unit := do
+  let builder := ({refField := "id" : IndexBuilder})
+    |>.addField "id"
+    |>.addField "header"
+    |>.addField "contents"
+  let mut index := builder.build
+  for post in posts do
+    let ref := defaultPostName post.source.date post.source.title ++ "/"
+    let tags := String.intercalate " " post.source.tags
+    let contents := tags ++ "\n\n" ++ searchableBody post.source.document
+    index := index.addDoc ref #[ref, post.source.title, contents]
+  let (extracted, docs) := index.extractDocs
+  let indexData := extracted.toJson.compress
+  let version := Verso.Search.hashHex (hash indexData)
+  let mut buckets : Std.HashMap UInt8 (Std.HashMap String Doc) := {}
+  for (ref, doc) in docs do
+    let doc := doc.insert "context" ""
+    buckets := buckets.alter (searchBucket ref) fun existing =>
+      some (existing.getD {} |>.insert ref doc)
+  let searchDir := (System.FilePath.mk config.output).join "-verso-search"
+  IO.FS.createDirAll searchDir
+  for (bucket, bucketDocs) in buckets do
+    let docsJson := Verso.Search.bucketDocsToJson bucketDocs {}
+    IO.FS.writeFile (searchDir / s!"searchIndex_{bucket}.{version}.js")
+      s!"window.docContents[{bucket}].resolve({docsJson.compress});"
+  let indexJs := "const __verso_searchIndexData = " ++ indexData ++ ";\n\n" ++
+    "const __versoSearchIndex = elasticlunr ? " ++
+      "elasticlunr.Index.load(__verso_searchIndexData) : null;\n" ++
+    "window.docContents = {};\n" ++
+    "window.searchIndex = elasticlunr ? __versoSearchIndex : null;\n" ++
+    "window.docPriorities = {};\n" ++
+    "window.searchIndexVersion = " ++ toString (Json.str version) ++ ";\n"
+  IO.FS.writeFile (searchDir / "searchIndex.js") indexJs
+  IO.FS.writeFile (searchDir / "elasticlunr.min.js") Verso.Output.Html.elasticlunr.min.js
+  VersoLiterateCode.emitSearchBox searchDir (some "search/")
+  IO.FS.writeFile (searchDir / "search-init.js") searchInitJs
+  -- The quick-jump combobox and the full-text page share Verso's declaration index. Keep the
+  -- source generated by `:literateHtml` at the site root so nested pages resolve it against their
+  -- `<base>` element just like the copied API documentation does.
+  let xref := match config.links.xref with
+    | some path => (path : System.FilePath)
+    | none => defaultDocsDirectory.join "xref.json"
+  let xrefOutput := (System.FilePath.mk config.output).join "xref.json"
+  if ← xref.pathExists then
+    copyFile xref xrefOutput
+  else
+    IO.FS.writeFile xrefOutput "{}\n"
+  let searchPageDir := (System.FilePath.mk config.output).join "search"
+  IO.FS.createDirAll searchPageDir
+  IO.FS.writeFile (searchPageDir / "index.html") (searchPage)
+
 private def writeRawPages (output : String) (posts : Array LoadedPost) : IO Unit := do
   for post in posts do
     let slug := defaultPostName post.source.date post.source.title
@@ -551,6 +793,7 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
     throw <| IO.userError s!"Verso failed to build {sourcePath}"
   injectRelatedPosts config.output posts
   writeRawPages config.output posts
+  writeSearchAssets config posts
   if ← copyGeneratedDocs config then
     IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.docsDirectory}"
   IO.println s!"built {config.output}"
