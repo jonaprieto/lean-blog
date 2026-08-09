@@ -3,7 +3,7 @@
 import { spawnSync } from "node:child_process";
 
 const options = {
-  source: "examples/posts",
+  source: "site/posts",
   output: ".lake/build/site",
   config: null,
   docsRoot: null,
@@ -45,7 +45,7 @@ for (let index = 0; index < args.length; index += 1) {
   else if (arg === "--skip-docs") options.skipDocs = true;
   else if (arg === "--skip-css") options.skipCss = true;
   else if (arg.startsWith("-")) throw new Error(`unknown option: ${arg}`);
-  else if (options.source === "examples/posts") options.source = arg;
+  else if (options.source === "site/posts") options.source = arg;
   else throw new Error(`unexpected argument: ${arg}`);
 }
 

@@ -12,8 +12,8 @@ lake build :literateHtml
 npm ci --prefix theme
 npm run build:css --prefix theme
 ./.lake/build/bin/leanblog init .lake/build/init-test
-./.lake/build/bin/leanblog check examples/posts
-./.lake/build/bin/leanblog build examples/posts
+./.lake/build/bin/leanblog check site/posts
+./.lake/build/bin/leanblog build site/posts
 pre-commit run --all-files
 ```
 

@@ -74,8 +74,8 @@ jobs:
           test -s .lake/build/init-test/posts/starter.lean.md
           test -s .lake/build/init-test/leanblog.json
           test -s .lake/build/init-test/.gitignore
-          ./.lake/build/bin/leanblog check examples/posts
-          ./.lake/build/bin/leanblog build examples/posts
+          ./.lake/build/bin/leanblog check site/posts
+          ./.lake/build/bin/leanblog build site/posts
           node tools/check-site.mjs .lake/build/site
           node tools/check-search.mjs .lake/build/site
           ./.lake/build/bin/leanblog check test/fixtures/posts

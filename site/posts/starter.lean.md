@@ -30,7 +30,7 @@ def greeting : String := "LeanBlog"
 
 ## Building a collection
 
-Build one file while writing, or point the same command at `examples/posts` to render the whole
+Build one file while writing, or point the same command at `site/posts` to render the whole
 collection. A normal external link works too: [Verso](https://github.com/leanprover/verso).
 
 ## External declarations

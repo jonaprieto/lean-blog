@@ -38,7 +38,7 @@ The [`PostSource`](lean:LeanBlog.PostSource) type represents a parsed post.
 
 `lean:` links resolve through the generated Verso cross-reference index by default; an unresolved
 declaration is a build error. Use `--targets targets.tsv` for declarations documented elsewhere.
-See [the starter post](examples/posts/starter.lean.md), the [multi-post examples](examples/posts),
+See [the starter post](site/posts/starter.lean.md), the [example collection](site/posts),
 and the visual collection prototype.
 
 Generated sites include a local full-text search; see [Search](#search) for the user-facing
@@ -69,7 +69,7 @@ Then open `examples/collection/index.html` in a browser.
 The canonical site build command runs the required preparation stages and renders the collection:
 
 ```text
-node tools/build-site.mjs examples/posts
+node tools/build-site.mjs site/posts
 ```
 
 Its output is in `.lake/build/site`. Use `node tools/build-site.mjs --help` for deployment-path and
@@ -79,8 +79,8 @@ incremental-build options. The equivalent individual commands are:
 lake exe leanblog init .
 lake build leanblog
 lake build :literateHtml
-lake exe leanblog check examples/posts
-lake exe leanblog build examples/posts
+lake exe leanblog check site/posts
+lake exe leanblog build site/posts
 ```
 
 `leanblog init` is safe to rerun: it creates `posts/starter.lean.md`, `README.md`, `leanblog.json`,

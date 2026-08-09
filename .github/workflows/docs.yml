@@ -60,8 +60,8 @@ jobs:
           PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
         run: |
           docs_root="${PAGES_BASE_PATH}/api"
-          ./.lake/build/bin/leanblog check examples/posts
-          ./.lake/build/bin/leanblog build examples/posts \
+          ./.lake/build/bin/leanblog check site/posts
+          ./.lake/build/bin/leanblog build site/posts \
             --output .lake/build/pages \
             --docs-root "$docs_root" \
             --docs-directory api
