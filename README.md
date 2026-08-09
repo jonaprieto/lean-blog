@@ -41,9 +41,8 @@ declaration is a build error. Use `--targets targets.tsv` for declarations docum
 See [the starter post](examples/posts/starter.lean.md), the [multi-post examples](examples/posts),
 and the visual collection prototype.
 
-Generated sites include a local full-text search at `/search/`. It searches titles, tags, headings,
-prose, mathematics, and code in the browser, with stemming, weighted ranking, snippets, highlighting,
-lazy-loaded result content, and no server-side search service.
+Generated sites include a local full-text search; see [Search](#search) for the user-facing
+behavior and build details.
 
 The `leanblog` CLI uses [lean-argus](https://github.com/jonaprieto/lean-argus) for typed options,
 derived help, shell completions, and terminal diagnostics. Runtime failures are rendered with the
@@ -84,6 +83,28 @@ The generated site is in `.lake/build/site`; open `.lake/build/site/index.html` 
 stylesheet with the commands above. The homepage is the post archive, and individual posts are
 nested below it. When `.lake/build/literate-html` exists, the build also copies the generated API
 documentation to `.lake/build/site/api`.
+
+## Search
+
+`leanblog build` emits a `/search/` page and a compact search field in every generated page header.
+The full-text index covers post titles, tags, headings, prose, mathematics, and fenced code. Verso's
+Elasticlunr-compatible runtime provides stemming, weighted ranking, snippets, highlighting, and
+lazy-loaded document buckets, so the site needs no search server or runtime API.
+
+The header field is useful for quick navigation: type a query, move through results with the arrow
+keys, and press Enter to open the selected post. Press `/` from page content to focus the field. The
+full page at `/search/` keeps the query in the URL, shows result counts, and provides full-text and
+domain filters, making searches bookmarkable and shareable.
+
+The search assets are generated, not checked in. After building a site, its generated index can be
+smoke-tested with:
+
+```text
+node tools/check-search.mjs .lake/build/site
+```
+
+The same check is run for the GitHub Pages output in CI. When the local Verso documentation build is
+available, Lean declaration search uses the generated `xref.json` alongside post full-text search.
 
 Directory mode walks nested folders and sorts `.md` and `.lean.md` files by path. A single file remains useful
 for a fast edit-check-render loop.
