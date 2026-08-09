@@ -92,13 +92,8 @@ jobs:
           from pathlib import Path
 
           html = Path('.lake/build/pages/index.html').read_text()
-          topics = (
-              'architecture', 'data-types', 'examples', 'getting-started', 'lean',
-              'links', 'markdown', 'math', 'mermaid', 'tutorial',
-          )
-          for topic in topics:
-              assert f'href="/{topic}/"' not in html, topic
-              assert f'href="{topic}/"' in html, topic
+          assert 'class="site-topic-links"' not in html
+          assert 'href="tutorial/"' not in html
           PY
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4

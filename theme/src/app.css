@@ -53,10 +53,6 @@
     @apply font-semibold text-base-content;
   }
 
-  .site-topic-links {
-    @apply flex flex-wrap items-center gap-x-3 gap-y-1;
-  }
-
   .site-theme-toggle {
     @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full
       text-lg text-base-content/60 hover:bg-base-200 hover:text-base-content;
