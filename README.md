@@ -76,8 +76,8 @@ lake exe leanblog check examples/posts
 lake exe leanblog build examples/posts
 ```
 
-`leanblog init` is safe to rerun: it creates `posts/starter.lean.md` and `README.md` only when they
-do not already exist, so it will not overwrite writing in progress.
+`leanblog init` is safe to rerun: it creates `posts/starter.lean.md`, `README.md`, `leanblog.json`,
+and `.gitignore` only when they do not already exist, so it will not overwrite writing in progress.
 
 The generated site is in `.lake/build/site`; open `.lake/build/site/index.html` after building the
 stylesheet with the commands above. The homepage is the post archive, and individual posts are
@@ -101,6 +101,18 @@ smoke-tested with:
 
 ```text
 node tools/check-search.mjs .lake/build/site
+```
+
+The generic generated-site audit is also available:
+
+```text
+node tools/check-site.mjs .lake/build/site
+```
+
+For a reusable semantic search check, pass a manifest containing `queries` and an optional `lazyRef`:
+
+```text
+node tools/check-search.mjs .lake/build/fixture-site test/fixtures/search.json
 ```
 
 The same check is run for the GitHub Pages output in CI. When the local Verso documentation build is
