@@ -272,7 +272,9 @@ private def themeAssets : Html :=
         if (error.name !== 'AbortError') showFeedback('Unable to share');
       }
     });
-    document.querySelector('[data-print-post]')?.addEventListener('click', () => window.print());
+    document.querySelectorAll('[data-print-post]').forEach((button) => {
+      button.addEventListener('click', () => window.print());
+    });
   };
   document.addEventListener('DOMContentLoaded', () => {
     update();
@@ -376,7 +378,8 @@ private def page : Template := do
 
 private def post : Template := do
   let path := (← param? (α := String) "path").getD ""
-  let rawHref := "raw/"
+  let postPath := (← currentPath).toList.filter (· != "")
+  let rawHref := String.intercalate "/" (postPath ++ ["raw", ""])
   pure {{
     <article class="post-page">
       <header class="post-header">
@@ -397,29 +400,22 @@ private def post : Template := do
               {{tags path md}}
             }}
           }}
-        <div class="post-actions" aria-label="Post actions">
-          <button type="button" class="post-action" data-share-post>
-            {{Icon.toHtml .share}}<span>"Share"</span>
-          </button>
-          <details class="post-more">
-            <summary class="post-action">
-              {{Icon.toHtml .ellipsisHorizontal}}<span>"More"</span>
-            </summary>
-            <div class="post-more-menu">
-              <a class="post-more-item" href={{rawHref}}>
-                {{Icon.toHtml .codeBracket}}<span>"See raw"</span>
-              </a>
-              <button type="button" class="post-more-item" data-print-post>
-                {{Icon.toHtml .printer}}<span>"Print this"</span>
-              </button>
-            </div>
-          </details>
-          <span class="post-action-feedback" data-post-action-feedback aria-live="polite"></span>
-        </div>
       </header>
       <div class="post-layout">
         <div class="post-main">
           <div class="leanblog-prose">{{← param "content"}}</div>
+          <div class="post-actions post-actions-bottom" aria-label="Post actions">
+            <button type="button" class="post-action" data-share-post>
+              {{Icon.toHtml .share}}<span>"Share"</span>
+            </button>
+            <a class="post-action" href={{rawHref}}>
+              {{Icon.toHtml .codeBracket}}<span>"See raw"</span>
+            </a>
+            <button type="button" class="post-action" data-print-post>
+              {{Icon.toHtml .printer}}<span>"Print this"</span>
+            </button>
+            <span class="post-action-feedback" data-post-action-feedback aria-live="polite"></span>
+          </div>
           <div id="leanblog-related-posts"></div>
         </div>
         <aside class="post-toc" data-post-toc data-post-toc-depth="3" hidden>

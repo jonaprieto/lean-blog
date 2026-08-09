@@ -139,8 +139,11 @@
     @apply mt-5 flex flex-wrap items-center gap-2;
   }
 
-  .post-action,
-  .post-more-item {
+  .post-actions-bottom {
+    @apply mt-10;
+  }
+
+  .post-action {
     @apply inline-flex items-center gap-2 rounded-md border border-base-300 px-3 py-1.5
       text-sm font-medium text-base-content/75 no-underline hover:border-primary/50
       hover:text-primary;
@@ -150,34 +153,12 @@
     @apply cursor-pointer bg-transparent;
   }
 
-  .post-action .leanblog-icon,
-  .post-more-item .leanblog-icon {
+  .post-action .leanblog-icon {
     @apply size-4;
   }
 
   .post-action-feedback {
     @apply text-sm text-base-content/55;
-  }
-
-  .post-more {
-    @apply relative;
-  }
-
-  .post-more summary {
-    @apply list-none;
-  }
-
-  .post-more summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .post-more-menu {
-    @apply absolute left-0 z-20 mt-2 grid min-w-36 gap-1 rounded-box border border-base-300
-      bg-base-100 p-1 shadow-lg;
-  }
-
-  .post-more-item {
-    @apply w-full justify-start border-0 bg-transparent px-2.5 py-2;
   }
 
   .post-toc {
@@ -342,32 +323,45 @@
     text-decoration-color: var(--color-info);
   }
 
-  .leanblog-prose .tippy-box[data-theme~='lean'],
-  .leanblog-prose .tippy-box[data-theme~='message'] {
+  .tippy-box[data-theme~='lean'],
+  .tippy-box[data-theme~='message'] {
     @apply rounded-box shadow-lg;
     background-color: var(--color-base-100);
     border: 1px solid var(--color-base-300);
     color: var(--color-base-content);
   }
 
-  .leanblog-prose .tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before,
-  .leanblog-prose .tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  .tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before,
+  .tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
     border-top-color: var(--color-base-100);
   }
 
-  .leanblog-prose .tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before,
-  .leanblog-prose .tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  .tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before,
+  .tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
     border-bottom-color: var(--color-base-100);
   }
 
-  .leanblog-prose .tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before,
-  .leanblog-prose .tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  .tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before,
+  .tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
     border-left-color: var(--color-base-100);
   }
 
-  .leanblog-prose .tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before,
-  .leanblog-prose .tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  .tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before,
+  .tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
     border-right-color: var(--color-base-100);
+  }
+
+  .tippy-box[data-theme~='lean'] .hover-info,
+  .tippy-box[data-theme~='message'] .hover-info {
+    @apply rounded-box;
+    background-color: var(--color-base-100);
+    color: var(--color-base-content);
+  }
+
+  .tippy-box[data-theme~='lean'] .hover-info code,
+  .tippy-box[data-theme~='message'] .hover-info code {
+    background-color: transparent;
+    color: var(--color-base-content);
   }
 
   @media (hover: hover) {
@@ -378,9 +372,8 @@
     .leanblog-prose .hl.lean .has-info.error:hover,
     .leanblog-prose .hl.lean .has-info.warning:hover,
     .leanblog-prose .hl.lean .has-info.information:hover {
-      background-color: color-mix(in oklab, var(--color-neutral-content) 16%,
-        var(--color-neutral));
-      color: var(--color-neutral-content);
+      background-color: var(--color-base-200);
+      color: var(--color-base-content);
       border-radius: 0.2rem;
     }
   }
