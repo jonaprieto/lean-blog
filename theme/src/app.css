@@ -98,6 +98,15 @@
     @apply mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary;
   }
 
+  .raw-source-page {
+    @apply max-w-5xl;
+  }
+
+  .raw-source-code {
+    @apply mt-8 overflow-x-auto rounded-box bg-neutral p-5 font-mono text-sm leading-7
+      text-neutral-content shadow-sm;
+  }
+
   .category-header {
     @apply mb-8 flex flex-wrap items-end justify-between gap-4;
   }
@@ -126,6 +135,51 @@
     @apply mt-3 flex flex-wrap items-center gap-2 text-sm text-base-content/60;
   }
 
+  .post-actions {
+    @apply mt-5 flex flex-wrap items-center gap-2;
+  }
+
+  .post-action,
+  .post-more-item {
+    @apply inline-flex items-center gap-2 rounded-md border border-base-300 px-3 py-1.5
+      text-sm font-medium text-base-content/75 no-underline hover:border-primary/50
+      hover:text-primary;
+  }
+
+  .post-action {
+    @apply cursor-pointer bg-transparent;
+  }
+
+  .post-action .leanblog-icon,
+  .post-more-item .leanblog-icon {
+    @apply size-4;
+  }
+
+  .post-action-feedback {
+    @apply text-sm text-base-content/55;
+  }
+
+  .post-more {
+    @apply relative;
+  }
+
+  .post-more summary {
+    @apply list-none;
+  }
+
+  .post-more summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .post-more-menu {
+    @apply absolute left-0 z-20 mt-2 grid min-w-36 gap-1 rounded-box border border-base-300
+      bg-base-100 p-1 shadow-lg;
+  }
+
+  .post-more-item {
+    @apply w-full justify-start border-0 bg-transparent px-2.5 py-2;
+  }
+
   .post-toc {
     @apply order-first self-start lg:order-last lg:sticky lg:top-6;
   }
@@ -139,20 +193,24 @@
     @apply border-l border-base-300 pl-4;
   }
 
-  .post-toc nav ol {
+  .post-toc nav ul {
     @apply m-0 grid list-none gap-2 p-0;
+  }
+
+  .post-toc nav ul ul {
+    @apply mt-2 gap-2 border-l border-base-300/70 pl-3;
   }
 
   .post-toc-link {
     @apply block text-sm text-base-content/70 no-underline hover:text-primary;
   }
 
-  .post-toc-level-2 {
-    @apply pl-3;
+  .post-toc-link.is-active {
+    @apply font-semibold text-primary;
   }
 
   .post-toc-level-3 {
-    @apply pl-6 text-xs;
+    @apply text-xs text-base-content/60;
   }
 
   .leanblog-prose {
@@ -205,6 +263,51 @@
 
   .leanblog-prose .hl.lean.block .comment {
     color: color-mix(in oklab, var(--color-neutral-content) 65%, transparent);
+  }
+
+  .leanblog-code {
+    @apply relative my-8 overflow-hidden rounded-box bg-neutral shadow-sm;
+  }
+
+  .leanblog-code-title {
+    @apply border-b border-base-content/10 bg-base-200 px-5 py-2 font-mono text-sm
+      text-base-content/75;
+  }
+
+  .leanblog-code > pre,
+  .leanblog-code > .hl.lean.block {
+    @apply m-0 block min-w-full overflow-x-auto rounded-none bg-transparent p-5 text-sm
+      leading-7 text-neutral-content;
+    --verso-code-color: var(--color-neutral-content);
+    --verso-code-keyword-color: var(--color-secondary);
+    --verso-code-const-color: var(--color-info);
+    --verso-code-var-color: var(--color-accent);
+  }
+
+  .leanblog-code-line {
+    @apply block min-w-max;
+  }
+
+  .leanblog-code-line::before {
+    @apply mr-4 inline-block w-8 select-none text-right text-neutral-content/35;
+    content: attr(data-line);
+  }
+
+  .code-copy-button {
+    @apply absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center
+      rounded-md text-neutral-content/60 hover:bg-neutral-content/10 hover:text-neutral-content;
+  }
+
+  .leanblog-code.has-title .code-copy-button {
+    @apply top-12;
+  }
+
+  .code-copy-button.copied {
+    @apply text-success;
+  }
+
+  .leanblog-icon {
+    @apply size-5 shrink-0;
   }
 
   .leanblog-prose .hl.lean .token .hover-info,
@@ -358,5 +461,34 @@
 
   .leanblog-related-card p {
     @apply mt-0 shrink-0 text-xs leading-5 text-base-content/60;
+  }
+}
+
+@media print {
+  .site-header,
+  .site-footer,
+  .post-toc,
+  .post-actions,
+  .leanblog-related {
+    display: none !important;
+  }
+
+  .site-content {
+    max-width: none;
+    padding: 0;
+  }
+
+  .post-page,
+  .leanblog-prose {
+    max-width: none;
+  }
+
+  .post-header {
+    margin-bottom: 2rem;
+  }
+
+  .leanblog-code {
+    break-inside: avoid;
+    box-shadow: none;
   }
 }

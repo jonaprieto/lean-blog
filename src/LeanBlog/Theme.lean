@@ -3,6 +3,7 @@ Copyright (c) 2026 Jonathan Prieto-Cubides. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import VersoBlog
+import LeanBlog.Icons
 
 /-!
 # LeanBlog's first theme
@@ -90,7 +91,8 @@ private def themeAssets : Html :=
   const update = () => {
     const dark = root.dataset.theme === 'dark';
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
-      button.querySelector('[data-theme-icon]').textContent = dark ? '☀' : '☾';
+      button.querySelector('[data-theme-icon-light]').hidden = dark;
+      button.querySelector('[data-theme-icon-dark]').hidden = !dark;
       button.setAttribute('aria-label', dark ? 'Use light theme' : 'Use dark theme');
     });
   };
@@ -112,7 +114,8 @@ private def themeAssets : Html :=
       const usedIds = new Set();
       const slugify = (text) => text.toLowerCase().trim()
         .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      const list = document.createElement('ol');
+      const list = document.createElement('ul');
+      const stack = [{ level: 0, list }];
       headings.forEach((heading, index) => {
         const baseId = heading.id || slugify(heading.textContent || '') || `section-${index + 1}`;
         let id = baseId;
@@ -126,21 +129,156 @@ private def themeAssets : Html :=
         }
         usedIds.add(id);
         heading.id = id;
+        const level = Number(heading.tagName.slice(1));
+        while (stack.length > 1 && level <= stack[stack.length - 1].level) stack.pop();
         const item = document.createElement('li');
         const link = document.createElement('a');
         link.className = `post-toc-link post-toc-level-${heading.tagName.slice(1)}`;
         link.href = `#${id}`;
         link.textContent = heading.textContent || id;
         item.append(link);
-        list.append(item);
+        stack[stack.length - 1].list.append(item);
+        const next = headings[index + 1];
+        const nextLevel = next ? Number(next.tagName.slice(1)) : 0;
+        if (nextLevel > level) {
+          const nested = document.createElement('ul');
+          item.append(nested);
+          stack.push({ level, list: nested });
+        }
       });
       nav.replaceChildren(list);
       toc.hidden = false;
+      const links = Array.from(nav.querySelectorAll('a'));
+      const setActive = (heading) => {
+        links.forEach((link) => {
+          const active = link.getAttribute('href') === `#${heading.id}`;
+          link.classList.toggle('is-active', active);
+          if (active) link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
+        });
+      };
+      const updateActive = () => {
+        let current = headings[0];
+        headings.forEach((heading) => {
+          if (heading.getBoundingClientRect().top <= 140) current = heading;
+        });
+        setActive(current);
+      };
+      updateActive();
+      window.addEventListener('scroll', updateActive, { passive: true });
     });
+  };
+  const splitNode = (node) => {
+    if (node.nodeType === 3) {
+      return node.textContent.split('\n').map((text) => document.createTextNode(text));
+    }
+    if (node.nodeType !== 1) return [node.cloneNode(true)];
+    const lines = [[]];
+    Array.from(node.childNodes).forEach((child) => {
+      splitNode(child).forEach((part, index) => {
+        if (index > 0) lines.push([]);
+        lines[lines.length - 1].push(part);
+      });
+    });
+    return lines.map((children) => {
+      const clone = node.cloneNode(false);
+      clone.replaceChildren(...children);
+      return clone;
+    });
+  };
+  const addLineNumbers = (code, source) => {
+    if (code.dataset.linesReady) return;
+    const lines = [[]];
+    Array.from(code.childNodes).forEach((child) => {
+      splitNode(child).forEach((part, index) => {
+        if (index > 0) lines.push([]);
+        lines[lines.length - 1].push(part);
+      });
+    });
+    if (source.endsWith('\n') && lines.length > 1 && lines[lines.length - 1].length === 0) {
+      lines.pop();
+    }
+    const fragment = document.createDocumentFragment();
+    lines.forEach((children, index) => {
+      const line = document.createElement('span');
+      line.className = 'leanblog-code-line';
+      line.dataset.line = String(index + 1);
+      line.append(...children);
+      fragment.append(line);
+    });
+    code.replaceChildren(fragment);
+    code.classList.add('leanblog-code-lines');
+    code.dataset.linesReady = 'true';
+  };
+  const copyText = async (text) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.append(textarea);
+    textarea.select();
+    const copied = document.execCommand('copy');
+    textarea.remove();
+    if (!copied) throw new Error('Copy failed');
+  };
+  const enhanceCodeBlocks = () => {
+    document.querySelectorAll('.leanblog-code').forEach((block) => {
+      const code = block.querySelector('code.hl.lean.block, pre');
+      const button = block.querySelector('[data-code-copy]');
+      if (!code || !button) return;
+      const source = (block.dataset.codeSource || code.textContent || '')
+        .replace(/\r\n?/g, '\n');
+      addLineNumbers(code, source);
+      button.addEventListener('click', async () => {
+        try {
+          await copyText(source);
+          button.classList.add('copied');
+          button.setAttribute('aria-label', 'Code copied');
+          button.title = 'Code copied';
+          window.setTimeout(() => {
+            button.classList.remove('copied');
+            button.setAttribute('aria-label', 'Copy code');
+            button.title = 'Copy code';
+          }, 1600);
+        } catch (_) {
+          button.setAttribute('aria-label', 'Copy failed');
+          button.title = 'Copy failed';
+        }
+      });
+    });
+  };
+  const setupPostActions = () => {
+    const feedback = document.querySelector('[data-post-action-feedback]');
+    const showFeedback = (message) => {
+      if (!feedback) return;
+      feedback.textContent = message;
+      window.setTimeout(() => { feedback.textContent = ''; }, 2200);
+    };
+    const share = document.querySelector('[data-share-post]');
+    share?.addEventListener('click', async () => {
+      const url = window.location.href.split('#')[0];
+      try {
+        if (navigator.share) await navigator.share({ title: document.title, url });
+        else {
+          await copyText(url);
+          showFeedback('Link copied');
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') showFeedback('Unable to share');
+      }
+    });
+    document.querySelector('[data-print-post]')?.addEventListener('click', () => window.print());
   };
   document.addEventListener('DOMContentLoaded', () => {
     update();
     buildTableOfContents();
+    enhanceCodeBlocks();
+    setupPostActions();
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
       button.addEventListener('click', () => {
         root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -202,7 +340,8 @@ private def primary : Template := do
               </nav>
               <button type="button" class="site-theme-toggle" data-theme-toggle
                 aria-label="Toggle color theme">
-                <span data-theme-icon aria-hidden="true">"☾"</span>
+                <span data-theme-icon-light>{{Icon.toHtml .moon}}</span>
+                <span data-theme-icon-dark hidden>{{Icon.toHtml .sun}}</span>
               </button>
             </div>
           </header>
@@ -237,6 +376,7 @@ private def page : Template := do
 
 private def post : Template := do
   let path := (← param? (α := String) "path").getD ""
+  let rawHref := "raw/"
   pure {{
     <article class="post-page">
       <header class="post-header">
@@ -257,6 +397,25 @@ private def post : Template := do
               {{tags path md}}
             }}
           }}
+        <div class="post-actions" aria-label="Post actions">
+          <button type="button" class="post-action" data-share-post>
+            {{Icon.toHtml .share}}<span>"Share"</span>
+          </button>
+          <details class="post-more">
+            <summary class="post-action">
+              {{Icon.toHtml .ellipsisHorizontal}}<span>"More"</span>
+            </summary>
+            <div class="post-more-menu">
+              <a class="post-more-item" href={{rawHref}}>
+                {{Icon.toHtml .codeBracket}}<span>"See raw"</span>
+              </a>
+              <button type="button" class="post-more-item" data-print-post>
+                {{Icon.toHtml .printer}}<span>"Print this"</span>
+              </button>
+            </div>
+          </details>
+          <span class="post-action-feedback" data-post-action-feedback aria-live="polite"></span>
+        </div>
       </header>
       <div class="post-layout">
         <div class="post-main">
@@ -264,7 +423,7 @@ private def post : Template := do
           <div id="leanblog-related-posts"></div>
         </div>
         <aside class="post-toc" data-post-toc data-post-toc-depth="3" hidden>
-          <p class="post-toc-title">"On this page"</p>
+          <p class="post-toc-title">"Sections"</p>
           <nav data-post-toc-nav aria-label="Table of contents"></nav>
         </aside>
       </div>

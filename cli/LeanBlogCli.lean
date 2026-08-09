@@ -23,7 +23,7 @@ open Lean
 open Argus
 open TermColor
 open TermColor.Diagnostics
-open Verso Doc
+open Verso Doc Output Html
 open Verso.Genre.Blog
 
 private def starterPost : String := r#"---
@@ -282,6 +282,7 @@ private def codeLinkTargets (index : DeclarationIndex) :
 
 structure LoadedPost where
   path : System.FilePath
+  raw : String
   source : PostSource
 
 private def relatedLimit : Nat := 3
@@ -340,6 +341,46 @@ private def injectRelatedPosts (output : String) (posts : Array LoadedPost) : IO
     let related := relatedPosts current posts
     IO.FS.writeFile page <| html.replace marker (relatedSection related)
 
+private def rawPage (post : LoadedPost) : String :=
+  let content := {{
+    <html lang="en">
+      <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <base href="../.././"/>
+        <title>{{post.source.title}} " · raw"</title>
+        <link rel="stylesheet" href="-verso-data/leanblog.css"/>
+      </head>
+      <body class="site-body min-h-screen bg-base-100 text-base-content">
+        <div class="site-shell flex min-h-screen flex-col">
+          <header class="site-header">
+            <div class="site-header-inner">
+              <a class="site-brand" href="../../">"LeanBlog"</a>
+              <nav class="site-nav" aria-label="Raw source navigation">
+                <a class="site-link site-link-strong" href="../">"Back to post"</a>
+              </nav>
+            </div>
+          </header>
+          <main class="site-main w-full flex-1"><div class="site-content">
+            <article class="raw-source-page">
+              <p class="page-kicker">"Raw source"</p>
+              <h1 class="page-title">{{post.source.title}}</h1>
+              <pre class="raw-source-code"><code>{{Html.text true post.raw}}</code></pre>
+            </article>
+          </div></main>
+        </div>
+      </body>
+    </html>
+  }}
+  content.asString (breakLines := true)
+
+private def writeRawPages (output : String) (posts : Array LoadedPost) : IO Unit := do
+  for post in posts do
+    let slug := defaultPostName post.source.date post.source.title
+    let directory := (System.FilePath.mk output).join slug |>.join "raw"
+    IO.FS.createDirAll directory
+    IO.FS.writeFile (directory.join "index.html") (rawPage post)
+
 private def sourceFiles (sourcePath : String) : IO (Array System.FilePath) := do
   let isMarkdown (path : System.FilePath) := path.toString.endsWith ".md"
   let path : System.FilePath := sourcePath
@@ -361,7 +402,7 @@ private def sourceFiles (sourcePath : String) : IO (Array System.FilePath) := do
 private def loadPost (path : System.FilePath) : IO LoadedPost := do
   let source ← IO.FS.readFile path
   match parsePost source with
-  | .ok source => pure {path, source}
+  | .ok parsed => pure {path, raw := source, source := parsed}
   | .error error => throw <| IO.userError s!"{path}: {error}"
 
 private def loadPosts (sourcePath : String) : IO (Array LoadedPost) := do
@@ -414,7 +455,8 @@ private def highlightLean (code : String) (environment : Lean.Environment) :
       (SubVerso.Compat.Frontend.processCommands Lean.mkNullNode).run
         {inputCtx} |>.run initialState
     let result := result.updateLeading code
-    let result := {result with items := result.items.map fun item => {item with messages := {}}}
+    let result := {result with
+      items := result.items.map (fun item => {item with messages := Lean.MessageLog.empty})}
     let action : Lean.Elab.Command.CommandElabM SubVerso.Highlighting.Highlighted := do
       Lean.Elab.Command.runTermElabM fun _ => do
         withTheReader Core.Context (fun context => {context with fileMap := inputCtx.fileMap}) do
@@ -508,6 +550,7 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
   if status != 0 then
     throw <| IO.userError s!"Verso failed to build {sourcePath}"
   injectRelatedPosts config.output posts
+  writeRawPages config.output posts
   if ← copyGeneratedDocs config then
     IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.docsDirectory}"
   IO.println s!"built {config.output}"

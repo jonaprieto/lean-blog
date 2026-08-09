@@ -15,3 +15,5 @@ package closure; this list must be revisited when the dependency boundary is red
 The first visual prototype also uses Tailwind CSS and daisyUI through the locked dependencies in
 `theme/package-lock.json`. Their exact package metadata and licenses must be checked again at each
 theme dependency update.
+
+The default theme embeds selected Heroicons SVG paths — MIT — <https://heroicons.com/>.
