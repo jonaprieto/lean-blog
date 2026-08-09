@@ -56,17 +56,6 @@ private def tags (path : String) (metadata : Post.PartMetadata) : Html :=
         {{<a href={{categoryHref path tag}} class="post-tag">{{tag.name}}</a>}}}}
     </div>}}
 
-private def categoryNav (categories : Post.Categories) : TemplateM Html := do
-  if categories.categories.isEmpty then
-    pure Html.empty
-  else
-    let root := (← currentPath).toList.take 1
-    let entries ← categories.categories.toList.mapM fun (_, category) => do
-      let href ← relative (root ++ [category.slug])
-      pure {{<a class="site-link" href={{dirPathToString href (trailing := true)}}>
-        {{category.name}}</a>}}
-    pure {{<span class="site-topic-links">{{entries.toArray}}</span>}}
-
 private def mermaidAssets : Html :=
   let script := "import mermaid from \"https://cdn.jsdelivr.net/npm/mermaid@11/" ++
     "dist/mermaid.esm.min.mjs\";\n" ++
@@ -192,8 +181,6 @@ private def header : TemplateM Html := do
 
 private def primary : Template := do
   let posts := (← param? "posts")
-  let categories := (← param? (α := Post.Categories) "categories").getD (.mk #[])
-  let topics ← categoryNav categories
   pure {{
     <html lang="en" data-theme="light">
       <head>
@@ -209,7 +196,6 @@ private def primary : Template := do
               <a class="site-brand" href=".">"LeanBlog"</a>
               <nav class="site-nav" aria-label="Primary">
                 <a class="site-link site-link-strong" href=".">"All posts"</a>
-                {{topics}}
               </nav>
               <button type="button" class="site-theme-toggle" data-theme-toggle
                 aria-label="Toggle color theme">
