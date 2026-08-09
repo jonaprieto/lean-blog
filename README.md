@@ -118,6 +118,15 @@ node tools/check-search.mjs .lake/build/fixture-site test/fixtures/search.json
 The same check is run for the GitHub Pages output in CI. When the local Verso documentation build is
 available, Lean declaration search uses the generated `xref.json` alongside post full-text search.
 
+To measure the renderer against a generated collection, run:
+
+```text
+node tools/benchmark-build.mjs --posts 100
+```
+
+The benchmark creates its fixture under a temporary directory, reports each build stage and output
+size, and removes the fixture when it finishes. Set `KEEP_BENCHMARK=1` to retain it for inspection.
+
 Directory mode walks nested folders and sorts `.md` and `.lean.md` files by path. A single file remains useful
 for a fast edit-check-render loop.
 
