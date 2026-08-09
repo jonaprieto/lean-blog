@@ -68,6 +68,8 @@ jobs:
           test -s .lake/build/pages/index.html
           test -s .lake/build/pages/api/LeanBlog/Markdown/index.html
           test -s .lake/build/pages/2026-8-3-sum-a-small-algebra-of-choices/index.html
+          test -s .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
+          test -s .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/raw/index.html
           test -s .lake/build/pages/tutorial/index.html
           grep -q "$docs_root/LeanBlog/Markdown/#LeanBlog___PostSource" .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'href="2026-8-3-sum-a-small-algebra-of-choices/"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
@@ -82,6 +84,14 @@ jobs:
           grep -q 'class="post-title"' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
           grep -q 'data-post-toc' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'data-post-toc-depth="3"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'class="leanblog-code"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'data-code-source' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'data-code-copy' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'addLineNumbers' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'Greeting.lean' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'class="raw-source-code"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/raw/index.html
+          grep -q 'data-share-post' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'data-print-post' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'class="post-layout"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
           ! grep -q '<details class="post-toc"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'buildTableOfContents' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html

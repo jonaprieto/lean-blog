@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 import MD4Lean
 import VersoBlog
+import LeanBlog.Icons
 import LeanBlog.Links
 
 /-!
@@ -117,6 +118,51 @@ private def attrText (text : Array MD4Lean.AttrText) : Except String String := d
     | .nullchar => throw "Markdown link contains a null character"
   pure result
 
+private def attrTextD (text : Array MD4Lean.AttrText) : String :=
+  match attrText text with
+  | .ok value => value
+  | .error _ => ""
+
+private def stripQuotes (value : String) : String :=
+  match value.toList with
+  | '"' :: rest =>
+    match rest.reverse with
+    | '"' :: inner => String.ofList inner.reverse
+    | _ => value
+  | '\'' :: rest =>
+    match rest.reverse with
+    | '\'' :: inner => String.ofList inner.reverse
+    | _ => value
+  | _ => value
+
+private def codeTitle? (info lang : Array MD4Lean.AttrText) : Option String :=
+  let info := attrTextD info
+  let language := attrTextD lang
+  let suffix := info.dropPrefix language |>.trimAscii.toString
+  if !"title=".isPrefixOf suffix then
+    none
+  else
+    let title := stripQuotes <| suffix.drop 6 |>.trimAscii.toString
+    if title.isEmpty then none else some title
+
+private def codeChrome (title? : Option String) : Html := {{
+  {{match title? with
+    | none => Html.empty
+    | some title => {{<div class="leanblog-code-title">{{Html.text true title}}</div>}}}}
+  <button type="button" class="code-copy-button" data-code-copy
+    aria-label="Copy code" title="Copy code">{{Icon.clipboardDocument.toHtml}}</button>
+}}
+
+private def codeWrapper (info lang source : String) (title? : Option String)
+    (contents : Array (Block Page)) : Block Page :=
+  let classes := if title?.isSome then "leanblog-code has-title" else "leanblog-code"
+  .other (.htmlWrapper "div" #[
+    ("class", classes),
+    ("data-code-source", source),
+    ("data-code-info", info),
+    ("data-code-language", lang)
+  ]) contents
+
 private def leanName (target : String) : Except String Lean.Name :=
   let name := target.toName
   if name == .anonymous then
@@ -177,16 +223,21 @@ private def lowerBlock (index : DeclarationIndex)
       pure <| .other (.docstringSection (level - 1)) #[.para title]
     | .code _info lang _fence content => do
       let code := String.join content.toList
-      if (← attrText lang) == "mermaid" then
+      let language := attrTextD lang
+      let info := attrTextD _info
+      let title? := codeTitle? _info lang
+      if language == "mermaid" then
         pure <| mermaidBlock code
       else
-        match highlight? code with
+        let chrome := .other (.blob (codeChrome title?)) #[]
+        let isLean := language == "lean" || language == "lean4"
+        match if isLean then highlight? code else none with
         | some highlighted =>
-          pure <| .other (.highlightedCode {
+          pure <| codeWrapper info language code title? #[chrome, .other (.highlightedCode {
             contextName := .anonymous
             showProofStates := false
-          } highlighted) #[.code code]
-        | none => pure (.code code)
+          } highlighted) #[.code code]]
+        | none => pure <| codeWrapper info language code title? #[chrome, .code code]
     | .blockquote _ => .error "Block quotes are not supported in Markdown posts yet"
     | .ul _ _ _ => .error "Lists are not supported in Markdown posts yet"
     | .ol _ _ _ _ => .error "Lists are not supported in Markdown posts yet"
