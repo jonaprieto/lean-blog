@@ -106,7 +106,7 @@ jobs:
           grep -q 'addLineNumbers' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'Greeting.lean' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'class="post-actions post-actions-bottom"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'href="2026-8-6-how-a-leanblog-post/raw/"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
+          grep -q 'href="2026-8-6-how-a-leanblog-post-is-built/raw/"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           ! grep -q 'class="post-more"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
           grep -q 'class="raw-source-code"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/raw/index.html
           grep -q 'data-share-post' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
