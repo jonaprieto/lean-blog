@@ -1,0 +1,13 @@
+{
+  "queries": [
+    {
+      "query": "searchable phrase",
+      "expected": "2025-1-2-fixture-guide/"
+    },
+    {
+      "query": "fixtureSearchValue",
+      "expected": "2025-1-3-fixture-reference/"
+    }
+  ],
+  "lazyRef": "2025-1-2-fixture-guide/"
+}

@@ -16,14 +16,13 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
-        with:
-          token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
-          skip: lean-axioms
+      - uses: pre-commit/action@v3.0.1
       - name: Git whitespace
         run: git diff --check
       - name: Validate README artwork
         run: python3 -c 'import pathlib, xml.etree.ElementTree as ET; [ET.parse(path) for path in pathlib.Path("assets").glob("*.svg")]'
+      - name: Verify public template path
+        run: node tools/check-public-path.mjs
 
   build:
     runs-on: ubuntu-latest
@@ -31,12 +30,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - name: Configure ecosystem dependency access
-        env:
-          ECOSYSTEM_READ_TOKEN: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
-        run: |
-          test -n "$ECOSYSTEM_READ_TOKEN"
-          git config --global url."https://x-access-token:${ECOSYSTEM_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
       - name: Cache elan toolchain
         uses: actions/cache@v6
         with:
@@ -70,90 +63,38 @@ jobs:
         run: test -s theme/dist/site.css
       - name: Check and render example collection
         run: |
+          rm -rf .lake/build/init-test
           ./.lake/build/bin/leanblog init .lake/build/init-test
           test -s .lake/build/init-test/posts/starter.lean.md
-          ./.lake/build/bin/leanblog check examples/posts
-          ./.lake/build/bin/leanblog build examples/posts
-          test -s .lake/build/site/index.html
-          test -s .lake/build/site/2026-8-5-linking-across-leanblog-modules/index.html
-          test -s .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          test -s .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/raw/index.html
-          test -s .lake/build/site/2026-8-7-a-leanblog-post/index.html
-          test -s .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
-          test -s .lake/build/site/2026-8-3-sum-a-small-algebra-of-choices/index.html
-          test -s .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
-          test -s .lake/build/site/tutorial/index.html
-          test -s .lake/build/site/search/index.html
-          test -s .lake/build/site/-verso-search/searchIndex.js
-          test -s .lake/build/site/-verso-search/elasticlunr.min.js
-          grep -q 'data-search-host' .lake/build/site/search/index.html
-          grep -q 'searchPagePath' .lake/build/site/-verso-search/search-config.js
-          grep -q '"VersoHtml.constant"' .lake/build/site/xref.json
-          grep -R -q 'Declaration links' .lake/build/site/-verso-search --include='searchIndex_*.js'
+          test -s .lake/build/init-test/leanblog.json
+          test -s .lake/build/init-test/.gitignore
+          test -s .lake/build/init-test/lean-toolchain
+          test -s .lake/build/init-test/lakefile.lean
+          test -s .lake/build/init-test/Main.lean
+          test -s .lake/build/init-test/theme/package.json
+          test -s .lake/build/init-test/theme/package-lock.json
+          test -s .lake/build/init-test/theme/src/app.css
+          test -s .lake/build/init-test/tools/build-site.mjs
+          test -s .lake/build/init-test/.github/workflows/pages.yml
+          cp .lake/build/init-test/README.md .lake/build/init-test/README.before-rerun.md
+          ./.lake/build/bin/leanblog init .lake/build/init-test >/dev/null
+          cmp .lake/build/init-test/README.md .lake/build/init-test/README.before-rerun.md
+          sed -i '/require leanblog from git/,+1c\require leanblog from "../../../"' \
+            .lake/build/init-test/lakefile.lean
+          (cd .lake/build/init-test && lake build leanblog-site)
+          (cd .lake/build/init-test && npm ci --prefix theme && node tools/build-site.mjs)
+          ./.lake/build/bin/leanblog check site/posts
+          ./.lake/build/bin/leanblog build site/posts
+          node tools/check-site.mjs .lake/build/site
           node tools/check-search.mjs .lake/build/site
-          test -s .lake/build/site/api/LeanBlog/Markdown/index.html
-          test -s .lake/build/site/api/LeanBlog/Links/index.html
-          test -s .lake/build/site/api/LeanBlog/Theme/index.html
-          grep -q '/api/LeanBlog/Markdown/#LeanBlog___PostSource' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q '/api/LeanBlog/Links/#LeanBlog___DeclarationIndex' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q '/api/LeanBlog/Theme/#LeanBlog___Theme___make' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="math inline"' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
-          grep -q 'class="mermaid"' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
-          grep -q 'mermaid@11' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
-          grep -q 'data-theme-toggle' .lake/build/site/index.html
-          grep -q 'class="site-header"' .lake/build/site/index.html
-          grep -Eq 'href="-verso-data/leanblog.css\?v=[0-9a-f]{16}"' .lake/build/site/index.html
-          grep -q 'class="post-list"' .lake/build/site/index.html
-          grep -q 'class="post-entry-row"' .lake/build/site/index.html
-          ! grep -q 'class="post-entry-author"' .lake/build/site/index.html
-          grep -q 'class="post-title"' .lake/build/site/2026-8-7-a-leanblog-post/index.html
-          grep -q 'data-post-toc' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-post-toc-depth="3"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-toc-target' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'scrollIntoView' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'history.pushState' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="leanblog-code"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-code-source' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-code-copy' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'addLineNumbers' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'Greeting.lean' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="post-actions post-actions-bottom"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'href="2026-8-6-how-a-leanblog-post-is-built/raw/"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          ! grep -q 'class="post-more"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="raw-source-code"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/raw/index.html
-          grep -q 'data-share-post' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-print-post' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="post-layout"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          ! grep -q '<details class="post-toc"' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'buildTableOfContents' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'Source model' .lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'Display mathematics' .lake/build/site/2026-8-4-markdown-math-and-diagrams/index.html
-          ! grep -q 'drawer lg:drawer-open' .lake/build/site/2026-8-7-a-leanblog-post/index.html
-          ! grep -q 'In this collection' .lake/build/site/2026-8-7-a-leanblog-post/index.html
-          ! grep -q 'A LeanBlog post</p>' .lake/build/site/2026-8-7-a-leanblog-post/index.html
-          grep -q 'href="2026-8-3-sum-a-small-algebra-of-choices/"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'href="2026-8-2-using-sum-in-another-post/"' .lake/build/site/2026-8-3-sum-a-small-algebra-of-choices/index.html
-          ! grep -R -q 'href="../2026-' .lake/build/site --include='index.html'
-          grep -q 'title="Declaration from `Sum, a small algebra of choices`"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'class="leanblog-related"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'class="related-card-body"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'href="tutorial/"' .lake/build/site/2026-8-2-using-sum-in-another-post/index.html
-      - name: Validate generated theme scripts
-        run: |
-          node <<'NODE'
-          const fs = require("node:fs");
-          const html = fs.readFileSync(
-            ".lake/build/site/2026-8-6-how-a-leanblog-post-is-built/index.html",
-            "utf8"
-          );
-          const match = html.match(
-            /<script>\s*\(\(\) => \{[\s\S]*?\n\}\)\(\);\s*<\/script>/
-          );
-          if (!match) throw new Error("theme script missing");
-          new Function(match[0].replace(/^<script>|<\/script>$/g, ""));
-          NODE
+          ./.lake/build/bin/leanblog check test/fixtures/posts
+          ./.lake/build/bin/leanblog build test/fixtures/posts \
+            --output .lake/build/fixture-site \
+            --xref test/fixtures/xref.json
+          node tools/check-site.mjs .lake/build/fixture-site
+          node tools/check-search.mjs .lake/build/fixture-site test/fixtures/search.json
           node --check --input-type=module < .lake/build/site/-verso-search/search-init.js
-      - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
-        with:
-          token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
-          hooks: lean-axioms
+      - name: Install Chromium for browser smoke tests
+        run: npm exec --prefix theme -- playwright install --with-deps chromium
+      - name: Run browser smoke tests
+        run: node tools/browser-smoke.mjs .lake/build/fixture-site

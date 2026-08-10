@@ -4,7 +4,7 @@
   themes: light --default, dark --prefersdark;
 }
 
-@source "../../examples";
+@source "../../site";
 @source "../../src";
 
 @theme {
@@ -45,8 +45,11 @@
     @apply flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-sm;
   }
 
+}
+
   /* Verso's search assets provide the accessible combobox and full-text result
-     renderer; these rules keep both views inside LeanBlog's compact visual system. */
+     renderer; these overrides intentionally stay unlayered so they win over
+     Verso's unlayered page-layout defaults. */
   .site-header-inner #search-wrapper {
     @apply relative order-3 block h-auto max-h-none min-w-0 w-full flex-none
       overflow-visible bg-transparent sm:order-2 sm:w-72;
@@ -88,6 +91,7 @@
     @apply px-3 py-2;
   }
 
+@layer components {
   .search-page-content {
     @apply max-w-4xl;
   }

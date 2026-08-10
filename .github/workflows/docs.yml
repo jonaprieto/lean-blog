@@ -23,12 +23,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - name: Configure ecosystem dependency access
-        env:
-          ECOSYSTEM_READ_TOKEN: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
-        run: |
-          test -n "$ECOSYSTEM_READ_TOKEN"
-          git config --global url."https://x-access-token:${ECOSYSTEM_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
       - name: Cache elan toolchain
         uses: actions/cache@v6
         with:
@@ -55,89 +49,29 @@ jobs:
           cache-dependency-path: theme/package-lock.json
       - name: Build Tailwind and daisyUI theme
         run: npm ci --prefix theme && npm run build:css --prefix theme
-      - name: Build Pages site
+      - name: Build and audit Pages site
         env:
           PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
         run: |
           docs_root="${PAGES_BASE_PATH}/api"
-          ./.lake/build/bin/leanblog check examples/posts
-          ./.lake/build/bin/leanblog build examples/posts \
+          ./.lake/build/bin/leanblog check site/posts
+          ./.lake/build/bin/leanblog build site/posts \
             --output .lake/build/pages \
             --docs-root "$docs_root" \
             --docs-directory api
-          test -s .lake/build/pages/index.html
-          test -s .lake/build/pages/api/LeanBlog/Markdown/index.html
-          test -s .lake/build/pages/2026-8-3-sum-a-small-algebra-of-choices/index.html
-          test -s .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          test -s .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/raw/index.html
-          test -s .lake/build/pages/tutorial/index.html
-          test -s .lake/build/pages/search/index.html
-          test -s .lake/build/pages/-verso-search/searchIndex.js
-          test -s .lake/build/pages/-verso-search/elasticlunr.min.js
-          grep -q 'data-search-host' .lake/build/pages/search/index.html
-          grep -q 'searchPagePath' .lake/build/pages/-verso-search/search-config.js
-          grep -q '"VersoHtml.constant"' .lake/build/pages/xref.json
-          grep -R -q 'Declaration links' .lake/build/pages/-verso-search --include='searchIndex_*.js'
+          node tools/check-site.mjs .lake/build/pages
           node tools/check-search.mjs .lake/build/pages
-          grep -q "$docs_root/LeanBlog/Markdown/#LeanBlog___PostSource" .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'href="2026-8-3-sum-a-small-algebra-of-choices/"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'href="2026-8-2-using-sum-in-another-post/"' .lake/build/pages/2026-8-3-sum-a-small-algebra-of-choices/index.html
-          grep -q 'title="Declaration from `Sum, a small algebra of choices`"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'class="leanblog-related"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'class="related-card-body"' .lake/build/pages/2026-8-2-using-sum-in-another-post/index.html
-          grep -q 'class="site-header"' .lake/build/pages/index.html
-          grep -Eq 'href="-verso-data/leanblog.css\?v=[0-9a-f]{16}"' .lake/build/pages/index.html
-          grep -q 'class="post-list"' .lake/build/pages/index.html
-          grep -q 'class="post-entry-row"' .lake/build/pages/index.html
-          ! grep -q 'class="post-entry-author"' .lake/build/pages/index.html
-          grep -q 'class="post-title"' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
-          grep -q 'data-post-toc' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-post-toc-depth="3"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-toc-target' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'scrollIntoView' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'history.pushState' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="leanblog-code"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-code-source' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-code-copy' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'addLineNumbers' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'Greeting.lean' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="post-actions post-actions-bottom"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'href="2026-8-6-how-a-leanblog-post-is-built/raw/"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          ! grep -q 'class="post-more"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="raw-source-code"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/raw/index.html
-          grep -q 'data-share-post' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'data-print-post' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'class="post-layout"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          ! grep -q '<details class="post-toc"' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'buildTableOfContents' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'Source model' .lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html
-          grep -q 'Display mathematics' .lake/build/pages/2026-8-4-markdown-math-and-diagrams/index.html
-          ! grep -q 'drawer lg:drawer-open' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
-          ! grep -q 'In this collection' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
-          ! grep -q 'A LeanBlog post</p>' .lake/build/pages/2026-8-7-a-leanblog-post/index.html
-          ! grep -R -q 'href="../2026-' .lake/build/pages --include='index.html'
-          python3 - <<'PY'
-          from pathlib import Path
-
-          html = Path('.lake/build/pages/index.html').read_text()
-          assert 'class="site-topic-links"' not in html
-          assert 'href="tutorial/"' not in html
-          PY
-      - name: Validate generated theme scripts
-        run: |
-          node <<'NODE'
-          const fs = require("node:fs");
-          const html = fs.readFileSync(
-            ".lake/build/pages/2026-8-6-how-a-leanblog-post-is-built/index.html",
-            "utf8"
-          );
-          const match = html.match(
-            /<script>\s*\(\(\) => \{[\s\S]*?\n\}\)\(\);\s*<\/script>/
-          );
-          if (!match) throw new Error("theme script missing");
-          new Function(match[0].replace(/^<script>|<\/script>$/g, ""));
-          NODE
           node --check --input-type=module < .lake/build/pages/-verso-search/search-init.js
+          DOCS_ROOT="$docs_root" python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          api = Path('.lake/build/pages/api')
+          assert api.is_dir() and any(api.rglob('index.html'))
+          posts = [p for p in Path('.lake/build/pages').rglob('index.html')
+                   if 'class="post-page"' in p.read_text()]
+          assert posts and any(os.environ['DOCS_ROOT'] in p.read_text() for p in posts)
+          PY
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:

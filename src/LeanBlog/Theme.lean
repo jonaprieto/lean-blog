@@ -2,6 +2,7 @@
 Copyright (c) 2026 Jonathan Prieto-Cubides. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
+import LeanBlog.Config
 import VersoBlog
 import VersoSearch.DomainSearch
 import LeanBlog.Icons
@@ -79,8 +80,12 @@ private def mermaidAssets : Html :=
     "document.addEventListener(\"leanblog-theme-change\", renderMermaid);"
   {{<script type="module">{{Html.text false script}}</script>}}
 
-private def themeAssets : Html :=
-  let script := r#"
+private def themeAssets (config : SiteConfig) : Html :=
+  let configuredTheme := match config.defaultTheme with
+    | "dark" => "'dark'"
+    | "light" => "'light'"
+    | _ => "preferred"
+  let script := (r#"
 (() => {
   const root = document.documentElement;
   const stored = (() => {
@@ -309,18 +314,44 @@ private def themeAssets : Html :=
     });
   });
 })();
-"#
+"#).replace
+    "root.dataset.theme = stored === 'dark' || stored === 'light' ? stored : preferred;"
+    ("root.dataset.theme = stored === 'dark' || stored === 'light' ? stored : " ++
+      configuredTheme ++ ";")
   {{<script>{{Html.text false script}}</script>}}
 
-private def footer : Html := {{
+private def footer (config : SiteConfig) : Html := {{
   <footer class="site-footer">
     <div class="site-footer-inner">
-      <span>"Built with LeanBlog, Verso, Tailwind, and daisyUI."</span>
+      <span>{{config.footer}}</span>
     </div>
   </footer>
 }}
 
-private def header : TemplateM Html := do
+/-- Render the configured archive and primary navigation links. -/
+def navigation (config : SiteConfig) : Html :=
+  let archive := #[(Html.tag "a" #[
+    ("class", "site-link site-link-strong"), ("href", ".")
+  ] (.text true config.archiveLabel))]
+  Html.seq <| archive ++ config.navigation.map fun item =>
+    Html.tag "a" #[
+      ("class", "site-link"), ("href", item.href)
+    ] (.text true item.label)
+
+/-- Render metadata shared by generated HTML pages. -/
+def siteMetadata (config : SiteConfig) : Html :=
+  let author := if config.author.isEmpty then Html.empty else
+    Html.tag "meta" #[("name", "author"), ("content", config.author)] Html.empty
+  let canonical := if config.siteUrl.isEmpty then Html.empty else
+    Html.tag "link" #[("rel", "canonical"), ("href", config.siteUrl)] Html.empty
+  Html.seq #[
+    Html.tag "meta" #[("name", "description"), ("content", config.tagline)] Html.empty,
+    Html.tag "meta" #[("name", "leanblog-base-path"), ("content", config.basePath)] Html.empty,
+    author,
+    canonical
+  ]
+
+private def header (config : SiteConfig) : TemplateM Html := do
   let header ← builtinHeader
   let emptySegments := (← currentPath).toList.foldl
     (fun count segment => if segment.isEmpty then count + 1 else count) 0
@@ -338,25 +369,27 @@ private def header : TemplateM Html := do
         pure <| some (.tag name attrs content)
       else
         pure none)
-  pure <| header ++ Verso.Search.searchAssetTags ++ themeAssets ++ mermaidAssets
+  pure <| header ++ Verso.Search.searchAssetTags ++ themeAssets config ++ mermaidAssets
 
-private def primary : Template := do
+private def primary (config : SiteConfig) : Template := do
   let posts := (← param? "posts")
+  let initialTheme := if config.defaultTheme == "dark" then "dark" else "light"
   pure {{
-    <html lang="en" data-theme="light">
+    <html lang="en" data-theme={{initialTheme}}>
       <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        {{siteMetadata config}}
         <title>{{← param (α := String) "title"}}</title>
-        {{← header}}
+        {{← header config}}
       </head>
       <body class="site-body min-h-screen bg-base-100 text-base-content">
         <div class="site-shell flex min-h-screen flex-col">
           <header class="site-header">
             <div class="site-header-inner">
-              <a class="site-brand" href=".">"LeanBlog"</a>
+              <a class="site-brand" href=".">{{config.title}}</a>
               <nav class="site-nav" aria-label="Primary">
-                <a class="site-link site-link-strong" href=".">"All posts"</a>
+                {{navigation config}}
               </nav>
               <button type="button" class="site-theme-toggle" data-theme-toggle
                 aria-label="Toggle color theme">
@@ -373,14 +406,14 @@ private def primary : Template := do
                 | some posts => {{
                   <section class="site-posts" aria-labelledby="recent-posts-title">
                     <div class="site-section-heading">
-                      <h2 id="recent-posts-title">"Recent posts"</h2>
+                      <h2 id="recent-posts-title">{{config.archiveTitle}}</h2>
                     </div>
                     {{posts}}
                   </section>
                 }}}}
             </div>
           </main>
-          {{footer}}
+          {{footer config}}
         </div>
       </body>
     </html>
@@ -473,7 +506,7 @@ private def archiveEntry : Template := do
     </li>
   }}]
 
-private def category : Template := do
+private def category (config : SiteConfig) : Template := do
   let category : Post.Category ← param "category"
   pure {{
     <div class="category-header">
@@ -481,17 +514,17 @@ private def category : Template := do
         <p class="page-kicker">"Topic"</p>
         <h1 class="page-title">{{category.name}}</h1>
       </div>
-      <a class="site-back-link" href=".">"← All posts"</a>
+      <a class="site-back-link" href=".">"← "{{config.archiveLabel}}</a>
     </div>
   }}
 
 /-- Build the initial Tailwind/daisyUI theme around an already-built stylesheet. -/
-def make (css : String) : Verso.Genre.Blog.Theme where
-  primaryTemplate := primary
+def make (css : String) (config : SiteConfig := {}) : Verso.Genre.Blog.Theme where
+  primaryTemplate := primary config
   pageTemplate := page
   postTemplate := post
   archiveEntryTemplate := archiveEntry
-  categoryTemplate := category
+  categoryTemplate := category config
   cssFiles := #[("leanblog.css", css)]
 
 end Theme

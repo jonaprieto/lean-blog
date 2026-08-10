@@ -38,15 +38,15 @@ The [`PostSource`](lean:LeanBlog.PostSource) type represents a parsed post.
 
 `lean:` links resolve through the generated Verso cross-reference index by default; an unresolved
 declaration is a build error. Use `--targets targets.tsv` for declarations documented elsewhere.
-See [the starter post](examples/posts/starter.lean.md), the [multi-post examples](examples/posts),
+See [the starter post](site/posts/starter.lean.md), the [example collection](site/posts),
 and the visual collection prototype.
 
 Generated sites include a local full-text search; see [Search](#search) for the user-facing
 behavior and build details.
 
-The `leanblog` CLI uses [lean-argus](https://github.com/jonaprieto/lean-argus) for typed options,
-derived help, shell completions, and terminal diagnostics. Runtime failures are rendered with the
-workspace's `termcolor-diagnostics` stack instead of ad-hoc error strings.
+The `leanblog` CLI is exported as a small library, uses only Lean and Verso dependencies, and can
+be wrapped by an initialized site's own executable. This keeps the generated starter project
+independent of private ecosystem tooling.
 
 ## Quick start
 
@@ -66,18 +66,36 @@ npm run build:css --prefix theme
 
 Then open `examples/collection/index.html` in a browser.
 
-Build the example collection through Verso:
+The canonical site build command runs the required preparation stages and renders the collection:
+
+```text
+node tools/build-site.mjs site/posts
+```
+
+Its output is in `.lake/build/site`. Use `node tools/build-site.mjs --help` for deployment-path and
+incremental-build options. The equivalent individual commands are:
 
 ```text
 lake exe leanblog init .
 lake build leanblog
 lake build :literateHtml
-lake exe leanblog check examples/posts
-lake exe leanblog build examples/posts
+lake exe leanblog check site/posts
+lake exe leanblog build site/posts
 ```
 
-`leanblog init` is safe to rerun: it creates `posts/starter.lean.md` and `README.md` only when they
-do not already exist, so it will not overwrite writing in progress.
+`leanblog init` creates a complete starter project: Lake metadata, a public CLI wrapper, the
+toolchain pin, locked Tailwind/daisyUI theme files, a build script, GitHub Pages workflow,
+configuration, README, and starter post. It is safe to rerun; every generated file is created
+only when missing, so it will not overwrite writing in progress.
+
+To create a new blog from the built CLI:
+
+```text
+lake exe leanblog init my-blog
+cd my-blog
+npm ci --prefix theme
+node tools/build-site.mjs
+```
 
 The generated site is in `.lake/build/site`; open `.lake/build/site/index.html` after building the
 stylesheet with the commands above. The homepage is the post archive, and individual posts are
@@ -103,8 +121,29 @@ smoke-tested with:
 node tools/check-search.mjs .lake/build/site
 ```
 
+The generic generated-site audit is also available:
+
+```text
+node tools/check-site.mjs .lake/build/site
+```
+
+For a reusable semantic search check, pass a manifest containing `queries` and an optional `lazyRef`:
+
+```text
+node tools/check-search.mjs .lake/build/fixture-site test/fixtures/search.json
+```
+
 The same check is run for the GitHub Pages output in CI. When the local Verso documentation build is
 available, Lean declaration search uses the generated `xref.json` alongside post full-text search.
+
+To measure the renderer against a generated collection, run:
+
+```text
+node tools/benchmark-build.mjs --posts 100
+```
+
+The benchmark creates its fixture under a temporary directory, reports each build stage and output
+size, and removes the fixture when it finishes. Set `KEEP_BENCHMARK=1` to retain it for inspection.
 
 Directory mode walks nested folders and sorts `.md` and `.lean.md` files by path. A single file remains useful
 for a fast edit-check-render loop.
@@ -143,10 +182,12 @@ collections, CLI, and theme.
 Verso owns document lowering, Lean highlighting, and HTML generation. Tailwind and daisyUI are part
 of the first visual prototype and the generated starter site; the Lean build consumes the generated
 CSS at build time. The starter theme includes a responsive drawer/sidebar, clickable topics, a
-post metadata rail, footer, and persisted light/dark switching.
+post metadata rail, footer, and persisted light/dark switching. The repository and generated
+starter use only public Lake dependencies and standard GitHub Actions; no private ecosystem token
+is needed for a clean template checkout.
 
 ## License
 
 Apache-2.0.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for collaborator setup and CI access.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks and CI setup.

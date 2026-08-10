@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 import LeanBlog
 
 open LeanBlog
+open Lean
 open Verso Doc
 open Verso.Genre.Blog
 
@@ -67,4 +68,22 @@ def main : IO Unit := do
       | .other (.blob _) #[] => true
       | _ => false do
     throw <| IO.userError "Mermaid lowering failed"
+  let configJson := Json.parse ("{" ++
+    "\"title\":\"Research Notes\",\"defaultTheme\":\"dark\",\"navigation\":[" ++
+    "{\"label\":\"About\",\"href\":\"about/\"}]}")
+  let config ← match configJson with
+    | .error error => throw <| IO.userError error
+    | .ok json => match SiteConfig.fromJson? json with
+      | .error error => throw <| IO.userError error
+      | .ok config => pure config
+  unless config.title == "Research Notes" && config.defaultTheme == "dark" do
+    throw <| IO.userError "site configuration scalar parsing failed"
+  unless config.navigation.size == 1 do
+    throw <| IO.userError "site configuration navigation count failed"
+  match config.navigation[0]? with
+  | some item =>
+    unless item.label == "About" && item.href == "about/" do
+      throw <| IO.userError "site configuration navigation parsing failed"
+  | none =>
+    throw <| IO.userError "site configuration navigation missing"
   IO.println "LeanBlog tests passed"
