@@ -18,12 +18,10 @@ repos:
   - id: check-executables-have-shebangs
   - id: detect-private-key
 
-- repo: https://github.com/jonaprieto/precommit-lean
-  rev: v0.1.3
+- repo: local
   hooks:
-  - id: lean-style
-  - id: lean-axioms
-    args:
-    - --target=LeanBlog.Properties
-    - --namespace=LeanBlog.Properties
-  - id: lean-modules
+  - id: lean-source-checks
+    name: Lean source checks
+    entry: node tools/check-lean.mjs
+    language: system
+    pass_filenames: false

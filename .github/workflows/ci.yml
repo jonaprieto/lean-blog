@@ -16,14 +16,13 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
-        with:
-          token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
-          skip: lean-axioms
+      - uses: pre-commit/action@v3.0.1
       - name: Git whitespace
         run: git diff --check
       - name: Validate README artwork
         run: python3 -c 'import pathlib, xml.etree.ElementTree as ET; [ET.parse(path) for path in pathlib.Path("assets").glob("*.svg")]'
+      - name: Verify public template path
+        run: node tools/check-public-path.mjs
 
   build:
     runs-on: ubuntu-latest
@@ -31,12 +30,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - name: Configure ecosystem dependency access
-        env:
-          ECOSYSTEM_READ_TOKEN: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
-        run: |
-          test -n "$ECOSYSTEM_READ_TOKEN"
-          git config --global url."https://x-access-token:${ECOSYSTEM_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
       - name: Cache elan toolchain
         uses: actions/cache@v6
         with:
@@ -70,10 +63,26 @@ jobs:
         run: test -s theme/dist/site.css
       - name: Check and render example collection
         run: |
+          rm -rf .lake/build/init-test
           ./.lake/build/bin/leanblog init .lake/build/init-test
           test -s .lake/build/init-test/posts/starter.lean.md
           test -s .lake/build/init-test/leanblog.json
           test -s .lake/build/init-test/.gitignore
+          test -s .lake/build/init-test/lean-toolchain
+          test -s .lake/build/init-test/lakefile.lean
+          test -s .lake/build/init-test/Main.lean
+          test -s .lake/build/init-test/theme/package.json
+          test -s .lake/build/init-test/theme/package-lock.json
+          test -s .lake/build/init-test/theme/src/app.css
+          test -s .lake/build/init-test/tools/build-site.mjs
+          test -s .lake/build/init-test/.github/workflows/pages.yml
+          cp .lake/build/init-test/README.md .lake/build/init-test/README.before-rerun.md
+          ./.lake/build/bin/leanblog init .lake/build/init-test >/dev/null
+          cmp .lake/build/init-test/README.md .lake/build/init-test/README.before-rerun.md
+          sed -i '/require leanblog from git/,+1c\require leanblog from "../../../"' \
+            .lake/build/init-test/lakefile.lean
+          (cd .lake/build/init-test && lake build leanblog-site)
+          (cd .lake/build/init-test && npm ci --prefix theme && node tools/build-site.mjs)
           ./.lake/build/bin/leanblog check site/posts
           ./.lake/build/bin/leanblog build site/posts
           node tools/check-site.mjs .lake/build/site
@@ -85,7 +94,7 @@ jobs:
           node tools/check-site.mjs .lake/build/fixture-site
           node tools/check-search.mjs .lake/build/fixture-site test/fixtures/search.json
           node --check --input-type=module < .lake/build/site/-verso-search/search-init.js
-      - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
-        with:
-          token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
-          hooks: lean-axioms
+      - name: Install Chromium for browser smoke tests
+        run: npm exec --prefix theme -- playwright install --with-deps chromium
+      - name: Run browser smoke tests
+        run: node tools/browser-smoke.mjs .lake/build/fixture-site

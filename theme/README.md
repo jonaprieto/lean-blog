@@ -1,7 +1,8 @@
 # LeanBlog theme
 
 This is the first visual prototype for LeanBlog. It uses Tailwind CSS and daisyUI to produce a
-static CSS artifact consumed by generated HTML.
+static CSS artifact consumed by generated HTML. Playwright is included as a development
+dependency for generated-site browser smoke tests.
 
 ```text
 npm ci
