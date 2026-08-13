@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 — 2026-08-13
+
+- Add the standard review guidance to the README.
+
 ## 0.1.0 — 2026-08-12
 
 - First tagged release on stable Lean v4.33.0.
