@@ -1,8 +1,10 @@
 # leanblog
 
 [![CI](https://github.com/jonaprieto/lean-blog/actions/workflows/ci.yml/badge.svg)](https://github.com/jonaprieto/lean-blog/actions/workflows/ci.yml)
-[![Lean 4](https://img.shields.io/badge/Lean%204-v4.32.2-6f42c1)](lean-toolchain)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/jonaprieto/lean-blog?display_name=tag&sort=semver)](https://github.com/jonaprieto/lean-blog/releases)
+[![Lean 4](https://img.shields.io/badge/Lean%204-v4.33.0-6f42c1)](lean-toolchain)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-4c8bf5)](https://jonaprieto.github.io/lean-blog/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 
 LeanBlog is a Lean-aware publishing framework built on top of Verso. It is intended to make blogs,
 documentation, module catalogues, and tutorials pleasant to author while preserving links from

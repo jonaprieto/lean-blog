@@ -8,9 +8,9 @@ package «leanblog» where
     ⟨`relaxedAutoImplicit, false⟩
   ]
 
--- Verso v4.32.0 is the last upstream snapshot aligned with the workspace toolchain.
+-- Verso v4.33.0 matches the workspace Lean toolchain.
 require verso from git
-  "https://github.com/leanprover/verso" @ "v4.32.0"
+  "https://github.com/leanprover/verso" @ "v4.33.0"
 
 @[default_target]
 lean_lib «LeanBlog» where
