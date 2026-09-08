@@ -62,7 +62,7 @@ private def starterConfig : String := r#"{
 
 private def starterGitignore : String := ".lake/\ntheme/node_modules/\ntheme/dist/\n"
 
-private def starterToolchain : String := "leanprover/lean4:v4.33.0\n"
+private def starterToolchain : String := "leanprover/lean4:v4.33.1\n"
 
 private def starterLakefile : String := r#"import Lake
 open Lake DSL
