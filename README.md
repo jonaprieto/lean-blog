@@ -11,6 +11,11 @@ documentation, module catalogues, and tutorials pleasant to author while preserv
 Lean names to their generated HTML definitions. The CLI reads Verso's generated `xref.json`
 automatically, while explicit target files remain available for external documentation.
 
+## Problem
+
+Lean publishing needs an authoring workflow that keeps documentation readable while preserving
+links from declarations to their generated definitions.
+
 ## Development
 
 This project is maintained by its author with AI-assisted development tools.
