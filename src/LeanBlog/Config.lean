@@ -56,7 +56,12 @@ namespace SiteConfig
 /-- The defaults used when no configuration file is present. -/
 def default : SiteConfig := {}
 
-private def stringField (json : Json) (key : String) (fallback : String) : Except String String :=
+private
+def stringField
+    (json : Json)
+    (key : String)
+    (fallback : String)
+    : Except String String :=
   match json.getObjVal? key with
   | .error _ => pure fallback
   | .ok value => value.getStr?

@@ -14,8 +14,8 @@ examples.
 
 namespace LeanBlog.Properties
 
-theorem declarationIndexEmpty :
-    (LeanBlog.DeclarationIndex.empty : LeanBlog.DeclarationIndex) = {} := by
+theorem declarationIndexEmpty
+    : (LeanBlog.DeclarationIndex.empty : LeanBlog.DeclarationIndex) = {} := by
   rfl
 
 end LeanBlog.Properties

@@ -23,7 +23,10 @@ open Verso.Genre.Blog.Template
 
 namespace Theme
 
-private def monthName : Nat → String
+private
+def monthName
+    : Nat →
+      String
   | 1 => "Jan"
   | 2 => "Feb"
   | 3 => "Mar"
@@ -38,19 +41,33 @@ private def monthName : Nat → String
   | 12 => "Dec"
   | month => toString month
 
-private def displayDate (date : Date) : String :=
+private
+def displayDate
+    (date : Date)
+    : String :=
   s!"{monthName date.month} {date.day}, {date.year}"
 
-private def readingTime (post : BlogPost) : Nat :=
+private
+def readingTime
+    (post : BlogPost)
+    : Nat :=
   let wordsPerMinute := 200
   let words := post.contents.content.foldl (fun total block => total + block.wordCount) 0
   max 1 ((words + wordsPerMinute - 1) / wordsPerMinute)
 
-private def categoryHref (path : String) (category : Post.Category) : String :=
+private
+def categoryHref
+    (path : String)
+    (category : Post.Category)
+    : String :=
   let base := if path.isEmpty then "" else path ++ "/"
   base ++ category.slug ++ "/"
 
-private def tags (path : String) (metadata : Post.PartMetadata) : Html :=
+private
+def tags
+    (path : String)
+    (metadata : Post.PartMetadata)
+    : Html :=
   if metadata.categories.isEmpty then
     Html.empty
   else
@@ -59,7 +76,9 @@ private def tags (path : String) (metadata : Post.PartMetadata) : Html :=
         {{<a href={{categoryHref path tag}} class="post-tag">{{tag.name}}</a>}}}}
     </div>}}
 
-private def mermaidAssets : Html :=
+private
+def mermaidAssets
+    : Html :=
   let script := "import mermaid from \"https://cdn.jsdelivr.net/npm/mermaid@11/" ++
     "dist/mermaid.esm.min.mjs\";\n" ++
     "const renderMermaid = async () => {\n" ++
@@ -80,7 +99,10 @@ private def mermaidAssets : Html :=
     "document.addEventListener(\"leanblog-theme-change\", renderMermaid);"
   {{<script type="module">{{Html.text false script}}</script>}}
 
-private def themeAssets (config : SiteConfig) : Html :=
+private
+def themeAssets
+    (config : SiteConfig)
+    : Html :=
   let configuredTheme := match config.defaultTheme with
     | "dark" => "'dark'"
     | "light" => "'light'"
@@ -329,7 +351,9 @@ private def footer (config : SiteConfig) : Html := {{
 }}
 
 /-- Render the configured archive and primary navigation links. -/
-def navigation (config : SiteConfig) : Html :=
+def navigation
+    (config : SiteConfig)
+    : Html :=
   let archive := #[(Html.tag "a" #[
     ("class", "site-link site-link-strong"), ("href", ".")
   ] (.text true config.archiveLabel))]
@@ -339,7 +363,9 @@ def navigation (config : SiteConfig) : Html :=
     ] (.text true item.label)
 
 /-- Render metadata shared by generated HTML pages. -/
-def siteMetadata (config : SiteConfig) : Html :=
+def siteMetadata
+    (config : SiteConfig)
+    : Html :=
   let author := if config.author.isEmpty then Html.empty else
     Html.tag "meta" #[("name", "author"), ("content", config.author)] Html.empty
   let canonical := if config.siteUrl.isEmpty then Html.empty else
@@ -519,7 +545,11 @@ private def category (config : SiteConfig) : Template := do
   }}
 
 /-- Build the initial Tailwind/daisyUI theme around an already-built stylesheet. -/
-def make (css : String) (config : SiteConfig := {}) : Verso.Genre.Blog.Theme where
+def make
+    (css : String)
+    (config : SiteConfig := {})
+    : Verso.Genre.Blog.Theme
+    where
   primaryTemplate := primary config
   pageTemplate := page
   postTemplate := post
