@@ -44,13 +44,15 @@ def monthName
 private
 def displayDate
     (date : Date)
-    : String :=
+    : String
+    :=
   s!"{monthName date.month} {date.day}, {date.year}"
 
 private
 def readingTime
     (post : BlogPost)
-    : Nat :=
+    : Nat
+    :=
   let wordsPerMinute := 200
   let words := post.contents.content.foldl (fun total block => total + block.wordCount) 0
   max 1 ((words + wordsPerMinute - 1) / wordsPerMinute)
@@ -59,7 +61,8 @@ private
 def categoryHref
     (path : String)
     (category : Post.Category)
-    : String :=
+    : String
+    :=
   let base := if path.isEmpty then "" else path ++ "/"
   base ++ category.slug ++ "/"
 
@@ -67,7 +70,8 @@ private
 def tags
     (path : String)
     (metadata : Post.PartMetadata)
-    : Html :=
+    : Html
+    :=
   if metadata.categories.isEmpty then
     Html.empty
   else
@@ -100,7 +104,8 @@ private def mermaidAssets : Html :=
 private
 def themeAssets
     (config : SiteConfig)
-    : Html :=
+    : Html
+    :=
   let configuredTheme := match config.defaultTheme with
     | "dark" => "'dark'"
     | "light" => "'light'"
@@ -351,7 +356,8 @@ private def footer (config : SiteConfig) : Html := {{
 /-- Render the configured archive and primary navigation links. -/
 def navigation
     (config : SiteConfig)
-    : Html :=
+    : Html
+    :=
   let archive := #[(Html.tag "a" #[
     ("class", "site-link site-link-strong"), ("href", ".")
   ] (.text true config.archiveLabel))]
@@ -363,7 +369,8 @@ def navigation
 /-- Render metadata shared by generated HTML pages. -/
 def siteMetadata
     (config : SiteConfig)
-    : Html :=
+    : Html
+    :=
   let author := if config.author.isEmpty then Html.empty else
     Html.tag "meta" #[("name", "author"), ("content", config.author)] Html.empty
   let canonical := if config.siteUrl.isEmpty then Html.empty else
