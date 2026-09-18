@@ -36,7 +36,8 @@ deriving Repr, BEq
 private
 def pathElement
     (d : String)
-    : Html :=
+    : Html
+    :=
   Html.tag "path" #[
     ("stroke-linecap", "round"),
     ("stroke-linejoin", "round"),
@@ -92,7 +93,8 @@ def path
 def Icon.toHtml
     (icon : Icon)
     (classes : String := "leanblog-icon")
-    : Html :=
+    : Html
+    :=
   {{<svg class={{classes}} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
     stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
     {{path icon}}

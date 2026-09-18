@@ -61,7 +61,8 @@ def stringField
     (json : Json)
     (key : String)
     (fallback : String)
-    : Except String String :=
+    : Except String String
+    :=
   match json.getObjVal? key with
   | .error _ => pure fallback
   | .ok value => value.getStr?

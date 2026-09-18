@@ -49,7 +49,8 @@ deriving Repr
 private
 def parseField
     (line : String)
-    : Except String (String × String) :=
+    : Except String (String × String)
+    :=
   let parts := line.splitOn ":"
   match parts with
   | [] => .error s!"Malformed front matter line: {line}"
@@ -63,7 +64,8 @@ private
 def parseNatField
     (field : String)
     (value : String)
-    : Except String Nat :=
+    : Except String Nat
+    :=
   match value.toNat? with
   | some value => .ok value
   | none => .error s!"Front matter field '{field}' expects a natural number, got '{value}'"
@@ -102,14 +104,16 @@ private
 def field?
     (fields : List (String × String))
     (key : String)
-    : Option String :=
+    : Option String
+    :=
   fields.find? (·.fst == key) |>.map (·.snd)
 
 private
 def requireField
     (fields : List (String × String))
     (key : String)
-    : Except String String :=
+    : Except String String
+    :=
   match field? fields key with
   | some value => .ok value
   | none => .error s!"Front matter is missing '{key}'"
@@ -146,7 +150,8 @@ def attrText
 private
 def attrTextD
     (text : Array MD4Lean.AttrText)
-    : String :=
+    : String
+    :=
   match attrText text with
   | .ok value => value
   | .error _ => ""
@@ -154,7 +159,8 @@ def attrTextD
 private
 def stripQuotes
     (value : String)
-    : String :=
+    : String
+    :=
   match value.toList with
   | '"' :: rest =>
     match rest.reverse with
@@ -169,7 +175,8 @@ def stripQuotes
 private
 def codeTitle?
     (info lang : Array MD4Lean.AttrText)
-    : Option String :=
+    : Option String
+    :=
   let info := attrTextD info
   let language := attrTextD lang
   let suffix := info.dropPrefix language |>.trimAscii.toString
@@ -192,7 +199,8 @@ def codeWrapper
     (info lang source : String)
     (title? : Option String)
     (contents : Array (Block Page))
-    : Block Page :=
+    : Block Page
+    :=
   let classes := if title?.isSome then "leanblog-code has-title" else "leanblog-code"
   .other (.htmlWrapper "div" #[
     ("class", classes),
@@ -204,7 +212,8 @@ def codeWrapper
 private
 def leanName
     (target : String)
-    : Except String Lean.Name :=
+    : Except String Lean.Name
+    :=
   let name := target.toName
   if name == .anonymous then
     .error "A lean: link must name a declaration"
@@ -259,7 +268,8 @@ end
 private
 def mermaidBlock
     (code : String)
-    : Block Page :=
+    : Block Page
+    :=
   .other (.blob {{<div class="mermaid">{{Html.text true code}}</div>}}) #[]
 
 private
@@ -317,7 +327,8 @@ def PostSource.toPartWithHighlight
 def PostSource.toPart
     (source : PostSource)
     (index : DeclarationIndex)
-    : Except String (Verso.Doc.Part Post) :=
+    : Except String (Verso.Doc.Part Post)
+    :=
   source.toPartWithHighlight index (fun _ => none)
 
 end LeanBlog

@@ -391,7 +391,8 @@ private
 def joinUrlPath
     (root : System.FilePath)
     (url : String)
-    : System.FilePath :=
+    : System.FilePath
+    :=
   url.splitOn "/" |>.filter (!·.isEmpty) |>.foldl (init := root) fun path segment =>
     path.join ⟨segment⟩
 
@@ -547,7 +548,8 @@ private
 def codeLinks
     (index : DeclarationIndex)
     (name : Lean.Name)
-    : Array Verso.Code.CodeLink :=
+    : Array Verso.Code.CodeLink
+    :=
   (index.resolve name).getD #[] |>.map fun target => {
     shortDescription := "docs"
     description := target.description
@@ -574,14 +576,16 @@ private def relatedLimit : Nat := 3
 private
 def sharedTagCount
     (left right : List String)
-    : Nat :=
+    : Nat
+    :=
   left.foldl (init := 0) fun count tag =>
     if right.contains tag then count + 1 else count
 
 private
 def newerDate
     (left right : Date)
-    : Bool :=
+    : Bool
+    :=
   if left.year != right.year then decide (left.year > right.year)
   else if left.month != right.month then decide (left.month > right.month)
   else decide (left.day > right.day)
@@ -590,7 +594,8 @@ private
 def relatedPosts
     (current : LoadedPost)
     (posts : Array LoadedPost)
-    : Array LoadedPost :=
+    : Array LoadedPost
+    :=
   let candidates := posts.filter (·.path != current.path)
   (candidates.qsort fun left right =>
     let leftScore := sharedTagCount current.source.tags left.source.tags
@@ -601,7 +606,8 @@ def relatedPosts
 private
 def relatedCard
     (post : LoadedPost)
-    : Verso.Output.Html :=
+    : Verso.Output.Html
+    :=
   let href := defaultPostName post.source.date post.source.title ++ "/"
   let tags := String.intercalate " · " post.source.tags
   let dateAndTags := post.source.date.toIso8601String ++
@@ -616,7 +622,8 @@ def relatedCard
 private
 def relatedSection
     (posts : Array LoadedPost)
-    : String :=
+    : String
+    :=
   let content := Verso.Output.Html.seq #[
     Verso.Output.Html.tag "h2" #[
       ("id", "leanblog-related-title"), ("class", "leanblog-related-heading")
@@ -649,7 +656,8 @@ private
 def rawPage
     (config : SiteConfig)
     (post : LoadedPost)
-    : String :=
+    : String
+    :=
   let content := {{
     <html lang="en">
       <head>
@@ -748,7 +756,8 @@ document.addEventListener("keydown", (event) => {
 private
 def searchThemeJs
     (config : SiteConfig)
-    : String :=
+    : String
+    :=
   let configuredTheme := match config.defaultTheme with
     | "dark" => "'dark'"
     | "light" => "'light'"
@@ -789,7 +798,8 @@ def searchThemeJs
 private
 def searchPage
     (config : SiteConfig)
-    : String :=
+    : String
+    :=
   let searchAssets := Verso.Search.searchAssetTags
   let initialTheme := if config.defaultTheme == "dark" then "dark" else "light"
   let page := {{
@@ -848,7 +858,8 @@ def searchPage
 private
 def searchableAttrText
     (text : Array MD4Lean.AttrText)
-    : String :=
+    : String
+    :=
   text.foldl (init := "") fun result part =>
     match part with
     | .normal value | .entity value => result ++ value
@@ -880,7 +891,8 @@ end
 private
 def searchableBody
     (document : MD4Lean.Document)
-    : String :=
+    : String
+    :=
   document.blocks.toList.map searchableBlock |> String.intercalate "\n\n"
 
 private def searchBucket (ref : String) : UInt8 := Id.run do
@@ -949,7 +961,8 @@ def writeSearchAssets
 private
 def versionCssHref
     (html css : String)
-    : String :=
+    : String
+    :=
   let marker := "href=\"-verso-data/leanblog.css"
   let version := Verso.Search.hashHex (hash css)
   let replacement := s!"href=\"-verso-data/leanblog.css?v={version}"
@@ -1027,7 +1040,8 @@ private structure LeanCodeBlock where
 private
 def markdownText
     (text : Array MD4Lean.AttrText)
-    : String :=
+    : String
+    :=
   text.foldl (init := "") fun result part =>
     match part with
     | .normal value | .entity value => result ++ value
@@ -1133,7 +1147,8 @@ private
 def addLocalTargets
     (index : DeclarationIndex)
     (highlighted : Array HighlightedCode)
-    : DeclarationIndex :=
+    : DeclarationIndex
+    :=
   highlighted.foldl (init := index) fun index code =>
     code.declarations.foldl (init := index) fun index name =>
       index.add name code.target
