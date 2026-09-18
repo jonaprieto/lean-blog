@@ -90,9 +90,7 @@ private def starterThemePackage : String := include_str "../../theme/package.jso
 
 private def starterThemeLock : String := include_str "../../theme/package-lock.json"
 
-private
-def starterThemeCss
-    : String :=
+private def starterThemeCss : String :=
   (include_str "../../theme/src/app.css")
     |>.replace "@source \"../../site\";" "@source \"../../posts\";"
     |>.replace "@source \"../../src\";" "@source \"../../posts\";"
@@ -258,11 +256,7 @@ structure RawOptions where
   output : Option String := none
   css : Option String := none
 
-private
-def parseRaw
-    : List String →
-      RawOptions →
-      Except String RawOptions
+private def parseRaw : List String → RawOptions → Except String RawOptions
   | [], options => .ok options
   | "--config" :: [], _ => .error "--config requires a value"
   | "--config" :: value :: rest, options =>
@@ -350,7 +344,11 @@ def fromExcept
   | .ok value => pure value
   | .error error => throw <| IO.userError error
 
-private def createIfMissing (path : System.FilePath) (contents : String) : IO Bool := do
+private
+def createIfMissing
+    (path : System.FilePath)
+    (contents : String)
+    : IO Bool := do
   if ← path.pathExists then
     pure false
   else
@@ -359,7 +357,10 @@ private def createIfMissing (path : System.FilePath) (contents : String) : IO Bo
 
 private def defaultDocsDirectory : System.FilePath := ".lake/build/literate-html"
 
-private def copyFile (source target : System.FilePath) : IO Unit := do
+private
+def copyFile
+    (source target : System.FilePath)
+    : IO Unit := do
   IO.FS.withFile source .read fun input =>
     IO.FS.withFile target .write fun output => do
       while true do
@@ -368,7 +369,10 @@ private def copyFile (source target : System.FilePath) : IO Unit := do
           break
         output.write contents
 
-private def copyDirectory (source target : System.FilePath) : IO Unit := do
+private
+def copyDirectory
+    (source target : System.FilePath)
+    : IO Unit := do
   let mut todo : List (System.FilePath × System.FilePath) := [(source, target)]
   while !todo.isEmpty do
     match todo with
@@ -391,7 +395,10 @@ def joinUrlPath
   url.splitOn "/" |>.filter (!·.isEmpty) |>.foldl (init := root) fun path segment =>
     path.join ⟨segment⟩
 
-private def copyGeneratedDocs (config : BuildConfig) : IO Bool := do
+private
+def copyGeneratedDocs
+    (config : BuildConfig)
+    : IO Bool := do
   let xref := defaultDocsDirectory.join "xref.json"
   let useLocalDocs := match config.links.xref with
     | none => true
@@ -403,7 +410,10 @@ private def copyGeneratedDocs (config : BuildConfig) : IO Bool := do
     copyDirectory defaultDocsDirectory destination
     pure true
 
-private def initBlog (directory : String) : IO Unit := do
+private
+def initBlog
+    (directory : String)
+    : IO Unit := do
   let root : System.FilePath := directory
   let posts := root.join "posts"
   let themeSource := root.join "theme" |>.join "src"
@@ -441,7 +451,10 @@ private def initBlog (directory : String) : IO Unit := do
   IO.println s!"next: edit {starter}"
   IO.println s!"then run: node {toolsDirectory.join "build-site.mjs"}"
 
-private def parseTargetLine (line : String) : Except String (Option (Lean.Name × Target)) := do
+private
+def parseTargetLine
+    (line : String)
+    : Except String (Option (Lean.Name × Target)) := do
   let line := line.trimAscii.toString
   if line.isEmpty || "#".isPrefixOf line then
     pure none
@@ -458,7 +471,10 @@ private def parseTargetLine (line : String) : Except String (Option (Lean.Name �
         })
     | _ => .error s!"Targets must have three tab-separated columns: '{line}'"
 
-private def findXref (configured? : Option String) : IO (Option System.FilePath) := do
+private
+def findXref
+    (configured? : Option String)
+    : IO (Option System.FilePath) := do
   match configured? with
   | some path =>
     unless ← (path : System.FilePath).pathExists do
@@ -471,7 +487,10 @@ private def findXref (configured? : Option String) : IO (Option System.FilePath)
     ]
     pure <| ← candidates.findM? (·.pathExists)
 
-private def loadSiteConfig (configured? : Option String) : IO SiteConfig := do
+private
+def loadSiteConfig
+    (configured? : Option String)
+    : IO SiteConfig := do
   let path : System.FilePath := configured?.getD "leanblog.json"
   if !(← path.pathExists) then
     pure {}
@@ -482,8 +501,12 @@ private def loadSiteConfig (configured? : Option String) : IO SiteConfig := do
     | .error error =>
       throw <| IO.userError s!"{path}: invalid site configuration: {error}"
 
-private def loadXref (path : System.FilePath) (docsRoot : String)
-    (index : DeclarationIndex) : IO DeclarationIndex := do
+private
+def loadXref
+    (path : System.FilePath)
+    (docsRoot : String)
+    (index : DeclarationIndex)
+    : IO DeclarationIndex := do
   let json ← fromExcept <| Json.parse (← IO.FS.readFile path)
   let domains ← fromExcept <| json.getObj?
   let some constants := domains.get? "VersoHtml.constant"
@@ -506,7 +529,10 @@ private def loadXref (path : System.FilePath) (docsRoot : String)
       }
   pure index
 
-private def loadTargets (config : LinkConfig) : IO DeclarationIndex := do
+private
+def loadTargets
+    (config : LinkConfig)
+    : IO DeclarationIndex := do
   let mut index := DeclarationIndex.empty
   if let some path := config.targets then
     let contents ← IO.FS.readFile path
@@ -604,7 +630,11 @@ def relatedSection
       ("class", "leanblog-related"), ("aria-labelledby", "leanblog-related-title")
     ] content
 
-private def injectRelatedPosts (output : String) (posts : Array LoadedPost) : IO Unit := do
+private
+def injectRelatedPosts
+    (output : String)
+    (posts : Array LoadedPost)
+    : IO Unit := do
   let marker := "<div id=\"leanblog-related-posts\"></div>"
   for current in posts do
     let slug := defaultPostName current.source.date current.source.title
@@ -861,7 +891,11 @@ private def searchBucket (ref : String) : UInt8 := Id.run do
     index := index + 1
   hash
 
-private def writeSearchAssets (config : BuildConfig) (posts : Array LoadedPost) : IO Unit := do
+private
+def writeSearchAssets
+    (config : BuildConfig)
+    (posts : Array LoadedPost)
+    : IO Unit := do
   let builder := ({refField := "id" : IndexBuilder})
     |>.addField "id"
     |>.addField "header"
@@ -925,7 +959,11 @@ def versionCssHref
     first ++ String.intercalate "" (rest.map fun part =>
       replacement ++ (part.dropWhile (· != '"')).copy)
 
-private def versionCssLinks (output : String) (css : String) : IO Unit := do
+private
+def versionCssLinks
+    (output : String)
+    (css : String)
+    : IO Unit := do
   let root : System.FilePath := output
   for page in (← root.walkDir).filter (·.toString.endsWith ".html") do
     let html ← IO.FS.readFile page
@@ -933,15 +971,22 @@ private def versionCssLinks (output : String) (css : String) : IO Unit := do
     unless versioned == html do
       IO.FS.writeFile page versioned
 
-private def writeRawPages (output : String) (site : SiteConfig)
-    (posts : Array LoadedPost) : IO Unit := do
+private
+def writeRawPages
+    (output : String)
+    (site : SiteConfig)
+    (posts : Array LoadedPost)
+    : IO Unit := do
   for post in posts do
     let slug := defaultPostName post.source.date post.source.title
     let directory := (System.FilePath.mk output).join slug |>.join "raw"
     IO.FS.createDirAll directory
     IO.FS.writeFile (directory.join "index.html") (rawPage site post)
 
-private def sourceFiles (sourcePath : String) : IO (Array System.FilePath) := do
+private
+def sourceFiles
+    (sourcePath : String)
+    : IO (Array System.FilePath) := do
   let isMarkdown (path : System.FilePath) := path.toString.endsWith ".md"
   let path : System.FilePath := sourcePath
   unless ← path.pathExists do
@@ -959,13 +1004,19 @@ private def sourceFiles (sourcePath : String) : IO (Array System.FilePath) := do
   else
     throw <| IO.userError s!"Expected a .md file or posts directory: {sourcePath}"
 
-private def loadPost (path : System.FilePath) : IO LoadedPost := do
+private
+def loadPost
+    (path : System.FilePath)
+    : IO LoadedPost := do
   let source ← IO.FS.readFile path
   match parsePost source with
   | .ok parsed => pure {path, raw := source, source := parsed}
   | .error error => throw <| IO.userError s!"{path}: {error}"
 
-private def loadPosts (sourcePath : String) : IO (Array LoadedPost) := do
+private
+def loadPosts
+    (sourcePath : String)
+    : IO (Array LoadedPost) := do
   let paths ← sourceFiles sourcePath
   paths.mapM loadPost
 
@@ -1001,8 +1052,11 @@ private structure HighlightResult where
   environment : Lean.Environment
   declarations : Array Lean.Name
 
-private def highlightLean (code : String) (environment : Lean.Environment) :
-    IO (Option HighlightResult) := do
+private
+def highlightLean
+    (code : String)
+    (environment : Lean.Environment)
+    : IO (Option HighlightResult) := do
   try
     let inputCtx := Parser.mkInputContext code "<leanblog-code>"
     let commandState : Lean.Elab.Command.State := {
@@ -1051,7 +1105,10 @@ private structure HighlightedCode where
   declarations : Array Lean.Name
   target : Target
 
-private def highlightLeanCodes (posts : Array LoadedPost) : IO (Array HighlightedCode) := do
+private
+def highlightLeanCodes
+    (posts : Array LoadedPost)
+    : IO (Array HighlightedCode) := do
   let mut highlighted := #[]
   let mut environment ← Lean.mkEmptyEnvironment
   for block in leanCodeBlocks posts do
@@ -1081,13 +1138,21 @@ def addLocalTargets
     code.declarations.foldl (init := index) fun index name =>
       index.add name code.target
 
-private def lowerPost (post : LoadedPost) (index : DeclarationIndex)
-    (highlight? : String → Option SubVerso.Highlighting.Highlighted) : IO (Part Post) := do
+private
+def lowerPost
+    (post : LoadedPost)
+    (index : DeclarationIndex)
+    (highlight? : String → Option SubVerso.Highlighting.Highlighted)
+    : IO (Part Post) := do
   match post.source.toPartWithHighlight index highlight? with
   | .ok contents => pure contents
   | .error error => throw <| IO.userError s!"{post.path}: {error}"
 
-private def checkSource (sourcePath : String) (links : LinkConfig) : IO Unit := do
+private
+def checkSource
+    (sourcePath : String)
+    (links : LinkConfig)
+    : IO Unit := do
   let posts ← loadPosts sourcePath
   let index ← loadTargets links
   for post in posts do
@@ -1095,7 +1160,11 @@ private def checkSource (sourcePath : String) (links : LinkConfig) : IO Unit := 
     IO.println s!"checked {post.path} ({post.source.document.blocks.size} blocks)"
   IO.println s!"checked {posts.size} post(s)"
 
-private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit := do
+private
+def buildSource
+    (sourcePath : String)
+    (config : BuildConfig)
+    : IO Unit := do
   let posts ← loadPosts sourcePath
   let index ← loadTargets config.links
   let highlighted ← highlightLeanCodes posts
@@ -1123,7 +1192,10 @@ private def buildSource (sourcePath : String) (config : BuildConfig) : IO Unit :
     IO.println s!"copied local API docs to {joinUrlPath ⟨config.output⟩ config.docsDirectory}"
   IO.println s!"built {config.output}"
 
-private def checkLinks (options : CheckOptions) : IO LinkConfig := do
+private
+def checkLinks
+    (options : CheckOptions)
+    : IO LinkConfig := do
   let site ← loadSiteConfig options.config
   pure {
     targets := options.targets
@@ -1131,7 +1203,10 @@ private def checkLinks (options : CheckOptions) : IO LinkConfig := do
     docsRoot := options.docsRoot.getD site.docsRoot
   }
 
-private def buildConfig (options : BuildOptions) : IO BuildConfig := do
+private
+def buildConfig
+    (options : BuildOptions)
+    : IO BuildConfig := do
   let site ← loadSiteConfig options.config
   pure {
     links := {
@@ -1159,12 +1234,17 @@ def runAction
     buildSource options.source (← buildConfig options)
     pure 0
 
-private def reportError (error : String) : IO UInt32 := do
+private
+def reportError
+    (error : String)
+    : IO UInt32 := do
   let stderr ← IO.getStderr
   stderr.putStrLn s!"leanblog: {error}"
   pure 2
 
-def main (args : List String) : IO UInt32 := do
+def main
+    (args : List String)
+    : IO UInt32 := do
   match args with
   | ["--help"] | ["-h"] =>
     IO.println usage

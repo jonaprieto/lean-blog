@@ -76,9 +76,7 @@ def tags
         {{<a href={{categoryHref path tag}} class="post-tag">{{tag.name}}</a>}}}}
     </div>}}
 
-private
-def mermaidAssets
-    : Html :=
+private def mermaidAssets : Html :=
   let script := "import mermaid from \"https://cdn.jsdelivr.net/npm/mermaid@11/" ++
     "dist/mermaid.esm.min.mjs\";\n" ++
     "const renderMermaid = async () => {\n" ++
@@ -377,7 +375,10 @@ def siteMetadata
     canonical
   ]
 
-private def header (config : SiteConfig) : TemplateM Html := do
+private
+def header
+    (config : SiteConfig)
+    : TemplateM Html := do
   let header ← builtinHeader
   let emptySegments := (← currentPath).toList.foldl
     (fun count segment => if segment.isEmpty then count + 1 else count) 0
@@ -397,7 +398,10 @@ private def header (config : SiteConfig) : TemplateM Html := do
         pure none)
   pure <| header ++ Verso.Search.searchAssetTags ++ themeAssets config ++ mermaidAssets
 
-private def primary (config : SiteConfig) : Template := do
+private
+def primary
+    (config : SiteConfig)
+    : Template := do
   let posts := (← param? "posts")
   let initialTheme := if config.defaultTheme == "dark" then "dark" else "light"
   pure {{
@@ -532,7 +536,10 @@ private def archiveEntry : Template := do
     </li>
   }}]
 
-private def category (config : SiteConfig) : Template := do
+private
+def category
+    (config : SiteConfig)
+    : Template := do
   let category : Post.Category ← param "category"
   pure {{
     <div class="category-header">

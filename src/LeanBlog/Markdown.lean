@@ -68,7 +68,10 @@ def parseNatField
   | some value => .ok value
   | none => .error s!"Front matter field '{field}' expects a natural number, got '{value}'"
 
-private def parseDate (value : String) : Except String Date := do
+private
+def parseDate
+    (value : String)
+    : Except String Date := do
   let parts := value.splitOn "-"
   match parts with
   | [year, month, day] =>
@@ -78,8 +81,10 @@ private def parseDate (value : String) : Except String Date := do
     pure {year := year, month, day}
   | _ => .error s!"Front matter date must use YYYY-MM-DD, got '{value}'"
 
-private def parseFrontMatter (lines : List String) :
-    Except String (List (String × String) × List String) := do
+private
+def parseFrontMatter
+    (lines : List String)
+    : Except String (List (String × String) × List String) := do
   match lines with
   | "---" :: rest =>
     let rec collectFields (fields : List (String × String)) (remaining : List String) :
@@ -110,7 +115,9 @@ def requireField
   | none => .error s!"Front matter is missing '{key}'"
 
 /-- Parse a Markdown source string into a post with a CommonMark body. -/
-def parsePost (source : String) : Except String PostSource := do
+def parsePost
+    (source : String)
+    : Except String PostSource := do
   let (fields, bodyLines) ← parseFrontMatter (source.splitOn "\n")
   let title ← requireField fields "title"
   let dateString ← requireField fields "date"
@@ -125,7 +132,10 @@ def parsePost (source : String) : Except String PostSource := do
     | .error "Markdown parser rejected the post body"
   pure {title, date, authors, tags, document}
 
-private def attrText (text : Array MD4Lean.AttrText) : Except String String := do
+private
+def attrText
+    (text : Array MD4Lean.AttrText)
+    : Except String String := do
   let mut result := ""
   for part in text do
     match part with
@@ -201,7 +211,11 @@ def leanName
   else
     .ok name
 
-private def linkedTarget (index : DeclarationIndex) (href : String) : Except String Target := do
+private
+def linkedTarget
+    (index : DeclarationIndex)
+    (href : String)
+    : Except String Target := do
   let name ← leanName (href.drop 5 |>.toString)
   match index.resolveOne name with
   | some target => pure target
@@ -284,9 +298,10 @@ def lowerBlock
 
 /-- Lower a parsed post to the Verso blog genre after resolving all `lean:` links. -/
 def PostSource.toPartWithHighlight
-    (source : PostSource) (index : DeclarationIndex)
-    (highlight? : String → Option SubVerso.Highlighting.Highlighted) :
-    Except String (Verso.Doc.Part Post) := do
+    (source : PostSource)
+    (index : DeclarationIndex)
+    (highlight? : String → Option SubVerso.Highlighting.Highlighted)
+    : Except String (Verso.Doc.Part Post) := do
   let content ← source.document.blocks.mapM (lowerBlock index highlight?)
   let categories := source.tags.map fun tag => {
     name := tag
