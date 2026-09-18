@@ -90,7 +90,9 @@ private def starterThemePackage : String := include_str "../../theme/package.jso
 
 private def starterThemeLock : String := include_str "../../theme/package-lock.json"
 
-private def starterThemeCss : String :=
+private
+def starterThemeCss
+    : String :=
   (include_str "../../theme/src/app.css")
     |>.replace "@source \"../../site\";" "@source \"../../posts\";"
     |>.replace "@source \"../../src\";" "@source \"../../posts\";"
@@ -256,7 +258,11 @@ structure RawOptions where
   output : Option String := none
   css : Option String := none
 
-private def parseRaw : List String → RawOptions → Except String RawOptions
+private
+def parseRaw
+    : List String →
+      RawOptions →
+      Except String RawOptions
   | [], options => .ok options
   | "--config" :: [], _ => .error "--config requires a value"
   | "--config" :: value :: rest, options =>
@@ -294,7 +300,10 @@ private def parseRaw : List String → RawOptions → Except String RawOptions
 
 termination_by args _ => args
 
-private def parseAction : List String → Except String Action
+private
+def parseAction
+    : List String →
+      Except String Action
   | [] => .error "missing command"
   | "init" :: rest => do
     let options ← parseRaw rest {}
@@ -333,7 +342,11 @@ private def parseAction : List String → Except String Action
     }
   | command :: _ => .error s!"unknown command: {command}"
 
-private def fromExcept {α : Type} : Except String α → IO α
+private
+def fromExcept
+    {α : Type}
+    : Except String α →
+      IO α
   | .ok value => pure value
   | .error error => throw <| IO.userError error
 
@@ -370,7 +383,11 @@ private def copyDirectory (source target : System.FilePath) : IO Unit := do
         else
           copyFile entry.path destination
 
-private def joinUrlPath (root : System.FilePath) (url : String) : System.FilePath :=
+private
+def joinUrlPath
+    (root : System.FilePath)
+    (url : String)
+    : System.FilePath :=
   url.splitOn "/" |>.filter (!·.isEmpty) |>.foldl (init := root) fun path segment =>
     path.join ⟨segment⟩
 
@@ -500,16 +517,22 @@ private def loadTargets (config : LinkConfig) : IO DeclarationIndex := do
     index ← loadXref path config.docsRoot index
   pure index
 
-private def codeLinks (index : DeclarationIndex) (name : Lean.Name) :
-    Array Verso.Code.CodeLink :=
+private
+def codeLinks
+    (index : DeclarationIndex)
+    (name : Lean.Name)
+    : Array Verso.Code.CodeLink :=
   (index.resolve name).getD #[] |>.map fun target => {
     shortDescription := "docs"
     description := target.description
     href := target.href
   }
 
-private def codeLinkTargets (index : DeclarationIndex) :
-    Verso.Code.LinkTargets TraverseContext where
+private
+def codeLinkTargets
+    (index : DeclarationIndex)
+    : Verso.Code.LinkTargets TraverseContext
+    where
   const := fun name _ => codeLinks index name
   option := fun name _ => codeLinks index name
   definition := fun name _ => codeLinks index name
@@ -522,16 +545,26 @@ structure LoadedPost where
 
 private def relatedLimit : Nat := 3
 
-private def sharedTagCount (left right : List String) : Nat :=
+private
+def sharedTagCount
+    (left right : List String)
+    : Nat :=
   left.foldl (init := 0) fun count tag =>
     if right.contains tag then count + 1 else count
 
-private def newerDate (left right : Date) : Bool :=
+private
+def newerDate
+    (left right : Date)
+    : Bool :=
   if left.year != right.year then decide (left.year > right.year)
   else if left.month != right.month then decide (left.month > right.month)
   else decide (left.day > right.day)
 
-private def relatedPosts (current : LoadedPost) (posts : Array LoadedPost) : Array LoadedPost :=
+private
+def relatedPosts
+    (current : LoadedPost)
+    (posts : Array LoadedPost)
+    : Array LoadedPost :=
   let candidates := posts.filter (·.path != current.path)
   (candidates.qsort fun left right =>
     let leftScore := sharedTagCount current.source.tags left.source.tags
@@ -539,7 +572,10 @@ private def relatedPosts (current : LoadedPost) (posts : Array LoadedPost) : Arr
     if leftScore == rightScore then newerDate left.source.date right.source.date
     else decide (leftScore > rightScore)).take relatedLimit
 
-private def relatedCard (post : LoadedPost) : Verso.Output.Html :=
+private
+def relatedCard
+    (post : LoadedPost)
+    : Verso.Output.Html :=
   let href := defaultPostName post.source.date post.source.title ++ "/"
   let tags := String.intercalate " · " post.source.tags
   let dateAndTags := post.source.date.toIso8601String ++
@@ -551,7 +587,10 @@ private def relatedCard (post : LoadedPost) : Verso.Output.Html :=
         Verso.Output.Html.tag "p" #[] (.text true dateAndTags)
       ]
 
-private def relatedSection (posts : Array LoadedPost) : String :=
+private
+def relatedSection
+    (posts : Array LoadedPost)
+    : String :=
   let content := Verso.Output.Html.seq #[
     Verso.Output.Html.tag "h2" #[
       ("id", "leanblog-related-title"), ("class", "leanblog-related-heading")
@@ -576,7 +615,11 @@ private def injectRelatedPosts (output : String) (posts : Array LoadedPost) : IO
     let related := relatedPosts current posts
     IO.FS.writeFile page <| html.replace marker (relatedSection related)
 
-private def rawPage (config : SiteConfig) (post : LoadedPost) : String :=
+private
+def rawPage
+    (config : SiteConfig)
+    (post : LoadedPost)
+    : String :=
   let content := {{
     <html lang="en">
       <head>
@@ -672,7 +715,10 @@ document.addEventListener("keydown", (event) => {
 });
 "##
 
-private def searchThemeJs (config : SiteConfig) : String :=
+private
+def searchThemeJs
+    (config : SiteConfig)
+    : String :=
   let configuredTheme := match config.defaultTheme with
     | "dark" => "'dark'"
     | "light" => "'light'"
@@ -710,7 +756,10 @@ private def searchThemeJs (config : SiteConfig) : String :=
     ("root.dataset.theme = stored === \"dark\" || stored === \"light\" ? stored : " ++
       configuredTheme ++ ";")
 
-private def searchPage (config : SiteConfig) : String :=
+private
+def searchPage
+    (config : SiteConfig)
+    : String :=
   let searchAssets := Verso.Search.searchAssetTags
   let initialTheme := if config.defaultTheme == "dark" then "dark" else "light"
   let page := {{
@@ -766,7 +815,10 @@ private def searchPage (config : SiteConfig) : String :=
   }}
   page.asString (breakLines := true)
 
-private def searchableAttrText (text : Array MD4Lean.AttrText) : String :=
+private
+def searchableAttrText
+    (text : Array MD4Lean.AttrText)
+    : String :=
   text.foldl (init := "") fun result part =>
     match part with
     | .normal value | .entity value => result ++ value
@@ -795,7 +847,10 @@ mutual
     | .blockquote _ | .ul _ _ _ | .ol _ _ _ _ | .html _ | .table _ _ => ""
 end
 
-private def searchableBody (document : MD4Lean.Document) : String :=
+private
+def searchableBody
+    (document : MD4Lean.Document)
+    : String :=
   document.blocks.toList.map searchableBlock |> String.intercalate "\n\n"
 
 private def searchBucket (ref : String) : UInt8 := Id.run do
@@ -857,7 +912,10 @@ private def writeSearchAssets (config : BuildConfig) (posts : Array LoadedPost) 
   IO.FS.createDirAll searchPageDir
   IO.FS.writeFile (searchPageDir / "index.html") (searchPage config.site)
 
-private def versionCssHref (html css : String) : String :=
+private
+def versionCssHref
+    (html css : String)
+    : String :=
   let marker := "href=\"-verso-data/leanblog.css"
   let version := Verso.Search.hashHex (hash css)
   let replacement := s!"href=\"-verso-data/leanblog.css?v={version}"
@@ -915,7 +973,10 @@ private structure LeanCodeBlock where
   postPath : System.FilePath
   source : String
 
-private def markdownText (text : Array MD4Lean.AttrText) : String :=
+private
+def markdownText
+    (text : Array MD4Lean.AttrText)
+    : String :=
   text.foldl (init := "") fun result part =>
     match part with
     | .normal value | .entity value => result ++ value
@@ -1011,8 +1072,11 @@ private def highlightLeanCodes (posts : Array LoadedPost) : IO (Array Highlighte
       environment := result.environment
   pure highlighted
 
-private def addLocalTargets (index : DeclarationIndex)
-    (highlighted : Array HighlightedCode) : DeclarationIndex :=
+private
+def addLocalTargets
+    (index : DeclarationIndex)
+    (highlighted : Array HighlightedCode)
+    : DeclarationIndex :=
   highlighted.foldl (init := index) fun index code =>
     code.declarations.foldl (init := index) fun index name =>
       index.add name code.target
@@ -1081,7 +1145,10 @@ private def buildConfig (options : BuildOptions) : IO BuildConfig := do
     docsDirectory := options.docsDirectory.getD site.docsDirectory
   }
 
-private def runAction : Action → IO UInt32
+private
+def runAction
+    : Action →
+      IO UInt32
   | .init options => do
     initBlog (options.directory.getD ".")
     pure 0

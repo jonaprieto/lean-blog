@@ -46,7 +46,10 @@ structure PostSource where
   document : MD4Lean.Document
 deriving Repr
 
-private def parseField (line : String) : Except String (String × String) :=
+private
+def parseField
+    (line : String)
+    : Except String (String × String) :=
   let parts := line.splitOn ":"
   match parts with
   | [] => .error s!"Malformed front matter line: {line}"
@@ -56,7 +59,11 @@ private def parseField (line : String) : Except String (String × String) :=
     else
       .ok (key.trimAscii.toString, String.intercalate ":" value |>.trimAscii.toString)
 
-private def parseNatField (field : String) (value : String) : Except String Nat :=
+private
+def parseNatField
+    (field : String)
+    (value : String)
+    : Except String Nat :=
   match value.toNat? with
   | some value => .ok value
   | none => .error s!"Front matter field '{field}' expects a natural number, got '{value}'"
@@ -86,10 +93,18 @@ private def parseFrontMatter (lines : List String) :
     collectFields [] rest
   | _ => .error "A Markdown post must start with front matter delimited by '---'"
 
-private def field? (fields : List (String × String)) (key : String) : Option String :=
+private
+def field?
+    (fields : List (String × String))
+    (key : String)
+    : Option String :=
   fields.find? (·.fst == key) |>.map (·.snd)
 
-private def requireField (fields : List (String × String)) (key : String) : Except String String :=
+private
+def requireField
+    (fields : List (String × String))
+    (key : String)
+    : Except String String :=
   match field? fields key with
   | some value => .ok value
   | none => .error s!"Front matter is missing '{key}'"
@@ -118,12 +133,18 @@ private def attrText (text : Array MD4Lean.AttrText) : Except String String := d
     | .nullchar => throw "Markdown link contains a null character"
   pure result
 
-private def attrTextD (text : Array MD4Lean.AttrText) : String :=
+private
+def attrTextD
+    (text : Array MD4Lean.AttrText)
+    : String :=
   match attrText text with
   | .ok value => value
   | .error _ => ""
 
-private def stripQuotes (value : String) : String :=
+private
+def stripQuotes
+    (value : String)
+    : String :=
   match value.toList with
   | '"' :: rest =>
     match rest.reverse with
@@ -135,7 +156,10 @@ private def stripQuotes (value : String) : String :=
     | _ => value
   | _ => value
 
-private def codeTitle? (info lang : Array MD4Lean.AttrText) : Option String :=
+private
+def codeTitle?
+    (info lang : Array MD4Lean.AttrText)
+    : Option String :=
   let info := attrTextD info
   let language := attrTextD lang
   let suffix := info.dropPrefix language |>.trimAscii.toString
@@ -153,8 +177,12 @@ private def codeChrome (title? : Option String) : Html := {{
     aria-label="Copy code" title="Copy code">{{Icon.clipboardDocument.toHtml}}</button>
 }}
 
-private def codeWrapper (info lang source : String) (title? : Option String)
-    (contents : Array (Block Page)) : Block Page :=
+private
+def codeWrapper
+    (info lang source : String)
+    (title? : Option String)
+    (contents : Array (Block Page))
+    : Block Page :=
   let classes := if title?.isSome then "leanblog-code has-title" else "leanblog-code"
   .other (.htmlWrapper "div" #[
     ("class", classes),
@@ -163,7 +191,10 @@ private def codeWrapper (info lang source : String) (title? : Option String)
     ("data-code-language", lang)
   ]) contents
 
-private def leanName (target : String) : Except String Lean.Name :=
+private
+def leanName
+    (target : String)
+    : Except String Lean.Name :=
   let name := target.toName
   if name == .anonymous then
     .error "A lean: link must name a declaration"
@@ -211,12 +242,18 @@ mutual
 
 end
 
-private def mermaidBlock (code : String) : Block Page :=
+private
+def mermaidBlock
+    (code : String)
+    : Block Page :=
   .other (.blob {{<div class="mermaid">{{Html.text true code}}</div>}}) #[]
 
-private def lowerBlock (index : DeclarationIndex)
-    (highlight? : String → Option SubVerso.Highlighting.Highlighted) :
-    MD4Lean.Block → Except String (Block Page)
+private
+def lowerBlock
+    (index : DeclarationIndex)
+    (highlight? : String → Option SubVerso.Highlighting.Highlighted)
+    : MD4Lean.Block →
+      Except String (Block Page)
     | .p content => .para <$> lowerInlines index content
     | .header level content => do
       let title ← lowerInlines index content
@@ -262,8 +299,10 @@ def PostSource.toPartWithHighlight
   }) content #[]
 
 /-- Lower a parsed post without requiring a code-highlighting environment. -/
-def PostSource.toPart (source : PostSource) (index : DeclarationIndex) :
-    Except String (Verso.Doc.Part Post) :=
+def PostSource.toPart
+    (source : PostSource)
+    (index : DeclarationIndex)
+    : Except String (Verso.Doc.Part Post) :=
   source.toPartWithHighlight index (fun _ => none)
 
 end LeanBlog

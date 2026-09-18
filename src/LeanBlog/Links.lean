@@ -31,15 +31,25 @@ namespace DeclarationIndex
 def empty : DeclarationIndex := {}
 
 /-- Add one destination to a declaration name. -/
-def add (index : DeclarationIndex) (name : Lean.Name) (target : Target) : DeclarationIndex :=
+def add
+    (index : DeclarationIndex)
+    (name : Lean.Name)
+    (target : Target)
+    : DeclarationIndex :=
   index.insert name ((index.find? name).getD #[] |>.push target)
 
 /-- Look up all destinations registered for a declaration name. -/
-def resolve (index : DeclarationIndex) (name : Lean.Name) : Option (Array Target) :=
+def resolve
+    (index : DeclarationIndex)
+    (name : Lean.Name)
+    : Option (Array Target) :=
   index.find? name
 
 /-- Select the first destination for a declaration. -/
-def resolveOne (index : DeclarationIndex) (name : Lean.Name) : Option Target :=
+def resolveOne
+    (index : DeclarationIndex)
+    (name : Lean.Name)
+    : Option Target :=
   index.resolve name |>.bind (·[0]?)
 
 end DeclarationIndex

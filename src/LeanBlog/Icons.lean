@@ -33,14 +33,20 @@ inductive Icon where
   | moon
 deriving Repr, BEq
 
-private def pathElement (d : String) : Html :=
+private
+def pathElement
+    (d : String)
+    : Html :=
   Html.tag "path" #[
     ("stroke-linecap", "round"),
     ("stroke-linejoin", "round"),
     ("d", d)
   ] Html.empty
 
-private def path : Icon → Html
+private
+def path
+    : Icon →
+      Html
   | .share => pathElement <|
       "M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186 " ++
       "c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 " ++
@@ -83,7 +89,10 @@ private def path : Icon → Html
       "c0-1.33.266-2.598.748-3.752A9.753 9.753 0 1 0 21.752 15.002Z"
 
 /-- Render an inline Heroicon with a caller-provided CSS class. -/
-def Icon.toHtml (icon : Icon) (classes : String := "leanblog-icon") : Html :=
+def Icon.toHtml
+    (icon : Icon)
+    (classes : String := "leanblog-icon")
+    : Html :=
   {{<svg class={{classes}} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
     stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
     {{path icon}}
