@@ -73,7 +73,8 @@ def parseNatField
 private
 def parseDate
     (value : String)
-    : Except String Date := do
+    : Except String Date
+    := do
   let parts := value.splitOn "-"
   match parts with
   | [year, month, day] =>
@@ -86,7 +87,8 @@ def parseDate
 private
 def parseFrontMatter
     (lines : List String)
-    : Except String (List (String × String) × List String) := do
+    : Except String (List (String × String) × List String)
+    := do
   match lines with
   | "---" :: rest =>
     let rec collectFields (fields : List (String × String)) (remaining : List String) :
@@ -121,7 +123,8 @@ def requireField
 /-- Parse a Markdown source string into a post with a CommonMark body. -/
 def parsePost
     (source : String)
-    : Except String PostSource := do
+    : Except String PostSource
+    := do
   let (fields, bodyLines) ← parseFrontMatter (source.splitOn "\n")
   let title ← requireField fields "title"
   let dateString ← requireField fields "date"
@@ -139,7 +142,8 @@ def parsePost
 private
 def attrText
     (text : Array MD4Lean.AttrText)
-    : Except String String := do
+    : Except String String
+    := do
   let mut result := ""
   for part in text do
     match part with
@@ -224,7 +228,8 @@ private
 def linkedTarget
     (index : DeclarationIndex)
     (href : String)
-    : Except String Target := do
+    : Except String Target
+    := do
   let name ← leanName (href.drop 5 |>.toString)
   match index.resolveOne name with
   | some target => pure target
@@ -311,7 +316,8 @@ def PostSource.toPartWithHighlight
     (source : PostSource)
     (index : DeclarationIndex)
     (highlight? : String → Option SubVerso.Highlighting.Highlighted)
-    : Except String (Verso.Doc.Part Post) := do
+    : Except String (Verso.Doc.Part Post)
+    := do
   let content ← source.document.blocks.mapM (lowerBlock index highlight?)
   let categories := source.tags.map fun tag => {
     name := tag

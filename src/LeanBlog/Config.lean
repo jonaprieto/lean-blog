@@ -70,7 +70,8 @@ def stringField
 private
 def navigationField
     (json : Json)
-    : Except String (Array NavigationItem) := do
+    : Except String (Array NavigationItem)
+    := do
   match json.getObjVal? "navigation" with
   | .error _ => pure #[]
   | .ok value =>
@@ -83,7 +84,8 @@ def navigationField
 /-- Decode a site configuration object, using defaults for omitted fields. -/
 def fromJson?
     (json : Json)
-    : Except String SiteConfig := do
+    : Except String SiteConfig
+    := do
   let _ ← json.getObj?
   let title ← stringField json "title" default.title
   let tagline ← stringField json "tagline" default.tagline
