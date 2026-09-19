@@ -80,7 +80,10 @@ def tags
         {{<a href={{categoryHref path tag}} class="post-tag">{{tag.name}}</a>}}}}
     </div>}}
 
-private def mermaidAssets : Html :=
+private
+def mermaidAssets
+    : Html
+    :=
   let script := "import mermaid from \"https://cdn.jsdelivr.net/npm/mermaid@11/" ++
     "dist/mermaid.esm.min.mjs\";\n" ++
     "const renderMermaid = async () => {\n" ++
@@ -385,7 +388,8 @@ def siteMetadata
 private
 def header
     (config : SiteConfig)
-    : TemplateM Html := do
+    : TemplateM Html
+    := do
   let header ← builtinHeader
   let emptySegments := (← currentPath).toList.foldl
     (fun count segment => if segment.isEmpty then count + 1 else count) 0
@@ -408,7 +412,8 @@ def header
 private
 def primary
     (config : SiteConfig)
-    : Template := do
+    : Template
+    := do
   let posts := (← param? "posts")
   let initialTheme := if config.defaultTheme == "dark" then "dark" else "light"
   pure {{
@@ -456,7 +461,10 @@ def primary
     </html>
   }}
 
-private def page : Template := do
+private
+def page
+    : Template
+    := do
   pure {{
     <article class="page-content">
       <h1 class="page-title">{{← param "title"}}</h1>
@@ -464,7 +472,10 @@ private def page : Template := do
     </article>
   }}
 
-private def post : Template := do
+private
+def post
+    : Template
+    := do
   let path := (← param? (α := String) "path").getD ""
   let postPath := (← currentPath).toList.filter (· != "")
   let rawHref := String.intercalate "/" (postPath ++ ["raw", ""])
@@ -514,7 +525,10 @@ private def post : Template := do
     </article>
   }}
 
-private def archiveEntry : Template := do
+private
+def archiveEntry
+    : Template
+    := do
   let post : BlogPost ← param "post"
   let path := (← param? (α := String) "path").getD ""
   let name ← post.postName'
@@ -546,7 +560,8 @@ private def archiveEntry : Template := do
 private
 def category
     (config : SiteConfig)
-    : Template := do
+    : Template
+    := do
   let category : Post.Category ← param "category"
   pure {{
     <div class="category-header">

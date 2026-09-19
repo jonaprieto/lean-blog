@@ -90,7 +90,10 @@ private def starterThemePackage : String := include_str "../../theme/package.jso
 
 private def starterThemeLock : String := include_str "../../theme/package-lock.json"
 
-private def starterThemeCss : String :=
+private
+def starterThemeCss
+    : String
+    :=
   (include_str "../../theme/src/app.css")
     |>.replace "@source \"../../site\";" "@source \"../../posts\";"
     |>.replace "@source \"../../src\";" "@source \"../../posts\";"
@@ -348,7 +351,8 @@ private
 def createIfMissing
     (path : System.FilePath)
     (contents : String)
-    : IO Bool := do
+    : IO Bool
+    := do
   if ← path.pathExists then
     pure false
   else
@@ -360,7 +364,8 @@ private def defaultDocsDirectory : System.FilePath := ".lake/build/literate-html
 private
 def copyFile
     (source target : System.FilePath)
-    : IO Unit := do
+    : IO Unit
+    := do
   IO.FS.withFile source .read fun input =>
     IO.FS.withFile target .write fun output => do
       while true do
@@ -372,7 +377,8 @@ def copyFile
 private
 def copyDirectory
     (source target : System.FilePath)
-    : IO Unit := do
+    : IO Unit
+    := do
   let mut todo : List (System.FilePath × System.FilePath) := [(source, target)]
   while !todo.isEmpty do
     match todo with
@@ -399,7 +405,8 @@ def joinUrlPath
 private
 def copyGeneratedDocs
     (config : BuildConfig)
-    : IO Bool := do
+    : IO Bool
+    := do
   let xref := defaultDocsDirectory.join "xref.json"
   let useLocalDocs := match config.links.xref with
     | none => true
@@ -414,7 +421,8 @@ def copyGeneratedDocs
 private
 def initBlog
     (directory : String)
-    : IO Unit := do
+    : IO Unit
+    := do
   let root : System.FilePath := directory
   let posts := root.join "posts"
   let themeSource := root.join "theme" |>.join "src"
@@ -455,7 +463,8 @@ def initBlog
 private
 def parseTargetLine
     (line : String)
-    : Except String (Option (Lean.Name × Target)) := do
+    : Except String (Option (Lean.Name × Target))
+    := do
   let line := line.trimAscii.toString
   if line.isEmpty || "#".isPrefixOf line then
     pure none
@@ -475,7 +484,8 @@ def parseTargetLine
 private
 def findXref
     (configured? : Option String)
-    : IO (Option System.FilePath) := do
+    : IO (Option System.FilePath)
+    := do
   match configured? with
   | some path =>
     unless ← (path : System.FilePath).pathExists do
@@ -491,7 +501,8 @@ def findXref
 private
 def loadSiteConfig
     (configured? : Option String)
-    : IO SiteConfig := do
+    : IO SiteConfig
+    := do
   let path : System.FilePath := configured?.getD "leanblog.json"
   if !(← path.pathExists) then
     pure {}
@@ -507,7 +518,8 @@ def loadXref
     (path : System.FilePath)
     (docsRoot : String)
     (index : DeclarationIndex)
-    : IO DeclarationIndex := do
+    : IO DeclarationIndex
+    := do
   let json ← fromExcept <| Json.parse (← IO.FS.readFile path)
   let domains ← fromExcept <| json.getObj?
   let some constants := domains.get? "VersoHtml.constant"
@@ -533,7 +545,8 @@ def loadXref
 private
 def loadTargets
     (config : LinkConfig)
-    : IO DeclarationIndex := do
+    : IO DeclarationIndex
+    := do
   let mut index := DeclarationIndex.empty
   if let some path := config.targets then
     let contents ← IO.FS.readFile path
@@ -641,7 +654,8 @@ private
 def injectRelatedPosts
     (output : String)
     (posts : Array LoadedPost)
-    : IO Unit := do
+    : IO Unit
+    := do
   let marker := "<div id=\"leanblog-related-posts\"></div>"
   for current in posts do
     let slug := defaultPostName current.source.date current.source.title
@@ -907,7 +921,8 @@ private
 def writeSearchAssets
     (config : BuildConfig)
     (posts : Array LoadedPost)
-    : IO Unit := do
+    : IO Unit
+    := do
   let builder := ({refField := "id" : IndexBuilder})
     |>.addField "id"
     |>.addField "header"
@@ -976,7 +991,8 @@ private
 def versionCssLinks
     (output : String)
     (css : String)
-    : IO Unit := do
+    : IO Unit
+    := do
   let root : System.FilePath := output
   for page in (← root.walkDir).filter (·.toString.endsWith ".html") do
     let html ← IO.FS.readFile page
@@ -989,7 +1005,8 @@ def writeRawPages
     (output : String)
     (site : SiteConfig)
     (posts : Array LoadedPost)
-    : IO Unit := do
+    : IO Unit
+    := do
   for post in posts do
     let slug := defaultPostName post.source.date post.source.title
     let directory := (System.FilePath.mk output).join slug |>.join "raw"
@@ -999,7 +1016,8 @@ def writeRawPages
 private
 def sourceFiles
     (sourcePath : String)
-    : IO (Array System.FilePath) := do
+    : IO (Array System.FilePath)
+    := do
   let isMarkdown (path : System.FilePath) := path.toString.endsWith ".md"
   let path : System.FilePath := sourcePath
   unless ← path.pathExists do
@@ -1020,7 +1038,8 @@ def sourceFiles
 private
 def loadPost
     (path : System.FilePath)
-    : IO LoadedPost := do
+    : IO LoadedPost
+    := do
   let source ← IO.FS.readFile path
   match parsePost source with
   | .ok parsed => pure {path, raw := source, source := parsed}
@@ -1029,7 +1048,8 @@ def loadPost
 private
 def loadPosts
     (sourcePath : String)
-    : IO (Array LoadedPost) := do
+    : IO (Array LoadedPost)
+    := do
   let paths ← sourceFiles sourcePath
   paths.mapM loadPost
 
@@ -1070,7 +1090,8 @@ private
 def highlightLean
     (code : String)
     (environment : Lean.Environment)
-    : IO (Option HighlightResult) := do
+    : IO (Option HighlightResult)
+    := do
   try
     let inputCtx := Parser.mkInputContext code "<leanblog-code>"
     let commandState : Lean.Elab.Command.State := {
@@ -1122,7 +1143,8 @@ private structure HighlightedCode where
 private
 def highlightLeanCodes
     (posts : Array LoadedPost)
-    : IO (Array HighlightedCode) := do
+    : IO (Array HighlightedCode)
+    := do
   let mut highlighted := #[]
   let mut environment ← Lean.mkEmptyEnvironment
   for block in leanCodeBlocks posts do
@@ -1158,7 +1180,8 @@ def lowerPost
     (post : LoadedPost)
     (index : DeclarationIndex)
     (highlight? : String → Option SubVerso.Highlighting.Highlighted)
-    : IO (Part Post) := do
+    : IO (Part Post)
+    := do
   match post.source.toPartWithHighlight index highlight? with
   | .ok contents => pure contents
   | .error error => throw <| IO.userError s!"{post.path}: {error}"
@@ -1167,7 +1190,8 @@ private
 def checkSource
     (sourcePath : String)
     (links : LinkConfig)
-    : IO Unit := do
+    : IO Unit
+    := do
   let posts ← loadPosts sourcePath
   let index ← loadTargets links
   for post in posts do
@@ -1179,7 +1203,8 @@ private
 def buildSource
     (sourcePath : String)
     (config : BuildConfig)
-    : IO Unit := do
+    : IO Unit
+    := do
   let posts ← loadPosts sourcePath
   let index ← loadTargets config.links
   let highlighted ← highlightLeanCodes posts
@@ -1210,7 +1235,8 @@ def buildSource
 private
 def checkLinks
     (options : CheckOptions)
-    : IO LinkConfig := do
+    : IO LinkConfig
+    := do
   let site ← loadSiteConfig options.config
   pure {
     targets := options.targets
@@ -1221,7 +1247,8 @@ def checkLinks
 private
 def buildConfig
     (options : BuildOptions)
-    : IO BuildConfig := do
+    : IO BuildConfig
+    := do
   let site ← loadSiteConfig options.config
   pure {
     links := {
@@ -1252,14 +1279,16 @@ def runAction
 private
 def reportError
     (error : String)
-    : IO UInt32 := do
+    : IO UInt32
+    := do
   let stderr ← IO.getStderr
   stderr.putStrLn s!"leanblog: {error}"
   pure 2
 
 def main
     (args : List String)
-    : IO UInt32 := do
+    : IO UInt32
+    := do
   match args with
   | ["--help"] | ["-h"] =>
     IO.println usage

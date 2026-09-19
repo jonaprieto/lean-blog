@@ -9,7 +9,9 @@ open Lean
 open Verso Doc
 open Verso.Genre.Blog
 
-def main : IO Unit := do
+def main
+    : IO Unit
+    := do
   let target : Target := {
     href := "/api/Sum.html#decl-Sum"
     description := "Definition of `Sum`"

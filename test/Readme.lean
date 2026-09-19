@@ -6,7 +6,9 @@ import LeanBlog
 
 open LeanBlog
 
-def main : IO Unit := do
+def main
+    : IO Unit
+    := do
   let target : Target := {
     href := "/api/Sum.html#decl-Sum"
     description := "Definition of `Sum`"
