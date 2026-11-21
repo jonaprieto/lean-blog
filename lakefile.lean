@@ -8,9 +8,9 @@ package «leanblog» where
     ⟨`relaxedAutoImplicit, false⟩
   ]
 
--- Verso v4.33.0 is compatible with the workspace Lean toolchain.
+-- Verso v4.36.0 is compatible with the workspace Lean toolchain.
 require verso from git
-  "https://github.com/leanprover/verso" @ "v4.33.0"
+  "https://github.com/leanprover/verso" @ "v4.36.0"
 
 @[default_target]
 lean_lib «LeanBlog» where

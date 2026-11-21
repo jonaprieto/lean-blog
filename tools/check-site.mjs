@@ -50,7 +50,7 @@ requireText(archive, [
 requireText(search, [
   "data-search-host",
   "search-page.js",
-  '<base href=".././">',
+  '<base href=".././"/>',
 ], "search page");
 requireText(searchAssets, ["window.searchIndex", "window.searchIndexVersion"], "search index");
 

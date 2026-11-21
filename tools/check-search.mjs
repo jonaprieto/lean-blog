@@ -51,7 +51,7 @@ if (lazyRef) {
 }
 
 const page = fs.readFileSync(searchPage, "utf8");
-for (const required of ["data-search-host", "search-page.js", '<base href=".././">']) {
+for (const required of ["data-search-host", "search-page.js", '<base href=".././"/>']) {
   if (!page.includes(required)) throw new Error(`search page is missing ${required}`);
 }
 
