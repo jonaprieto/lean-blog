@@ -2,7 +2,7 @@ import Lake
 open Lake DSL
 
 package «leanblog» where
-  version := v!"0.1.3"
+  version := v!"0.1.4"
   leanOptions := #[
     ⟨`autoImplicit, false⟩,
     ⟨`relaxedAutoImplicit, false⟩
