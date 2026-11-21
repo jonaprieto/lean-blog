@@ -363,11 +363,11 @@ def navigation
     :=
   let archive := #[(Html.tag "a" #[
     ("class", "site-link site-link-strong"), ("href", ".")
-  ] (.text true config.archiveLabel))]
+  ] (.text config.archiveLabel))]
   Html.seq <| archive ++ config.navigation.map fun item =>
     Html.tag "a" #[
       ("class", "site-link"), ("href", item.href)
-    ] (.text true item.label)
+    ] (.text item.label)
 
 /-- Render metadata shared by generated HTML pages. -/
 def siteMetadata
@@ -404,7 +404,7 @@ def header
             (key, value.drop (emptySegments * relativeSegment.length) |>.toString)
           else
             (key, value)
-        pure <| some (.tag name attrs content)
+        pure <| some (.element name attrs content)
       else
         pure none)
   pure <| header ++ Verso.Search.searchAssetTags ++ themeAssets config ++ mermaidAssets

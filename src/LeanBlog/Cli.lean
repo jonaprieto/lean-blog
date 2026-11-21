@@ -62,7 +62,7 @@ private def starterConfig : String := r#"{
 
 private def starterGitignore : String := ".lake/\ntheme/node_modules/\ntheme/dist/\n"
 
-private def starterToolchain : String := "leanprover/lean4:v4.33.1\n"
+private def starterToolchain : String := "leanprover/lean4:v4.36.0\n"
 
 private def starterLakefile : String := r#"import Lake
 open Lake DSL
@@ -174,7 +174,7 @@ A Lean-aware blog generated with [LeanBlog](https://github.com/jonaprieto/lean-b
 
 ## Build
 
-Install Lean 4.32.2 and Node.js, then run:
+Install Lean 4.36.0 and Node.js, then run:
 
 ```text
 npm ci --prefix theme
@@ -628,8 +628,8 @@ def relatedCard
   Verso.Output.Html.tag "a" #[("href", href), ("class", "leanblog-related-card")] <|
     Verso.Output.Html.tag "div" #[("class", "related-card-body")] <|
       Verso.Output.Html.seq #[
-        Verso.Output.Html.tag "h3" #[] (.text true post.source.title),
-        Verso.Output.Html.tag "p" #[] (.text true dateAndTags)
+        Verso.Output.Html.tag "h3" #[] (.text post.source.title),
+        Verso.Output.Html.tag "p" #[] (.text dateAndTags)
       ]
 
 private
@@ -640,7 +640,7 @@ def relatedSection
   let content := Verso.Output.Html.seq #[
     Verso.Output.Html.tag "h2" #[
       ("id", "leanblog-related-title"), ("class", "leanblog-related-heading")
-    ] (.text true "Continue reading"),
+    ] (.text "Continue reading"),
     Verso.Output.Html.tag "div" #[
       ("class", "leanblog-related-grid")
     ] (Verso.Output.Html.seq (posts.map relatedCard))
